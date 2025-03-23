@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import { FiClock, FiCalendar, FiBarChart2, FiCheckCircle, FiAlertCircle, FiFilter, FiSearch, FiArrowUp, FiArrowDown, FiActivity, FiPlus, FiMoreHorizontal, FiChevronDown, FiChevronRight } from 'react-icons/fi';
 import { Task, TeamMemberType, ActivityItem } from '../../types';
 import { mockTasks } from '../../mocks/tasks';
@@ -15,6 +16,7 @@ type SortField = 'dueDate' | 'priority' | 'timeSpent' | 'project';
 type SortDirection = 'asc' | 'desc';
 
 interface TaskGroup {
+  id: string;
   title: string;
   tasks: Task[];
   isExpanded: boolean;
@@ -49,41 +51,34 @@ const DeveloperPage: React.FC = () => {
 
   // New states for Notion-like features
   const [taskGroups, setTaskGroups] = useState<TaskGroup[]>([
-    { title: '🎯 Priority Tasks', tasks: [], isExpanded: true },
-    { title: '🚀 In Progress', tasks: [], isExpanded: true },
-    { title: '📝 To Review', tasks: [], isExpanded: true },
-    { title: '✅ Completed', tasks: [], isExpanded: false },
+    { id: 'priority', title: '🎯 Priority Tasks', tasks: [], isExpanded: true },
+    { id: 'in_progress', title: '🚀 In Progress', tasks: [], isExpanded: true },
+    { id: 'review', title: '📝 To Review', tasks: [], isExpanded: true },
+    { id: 'completed', title: '✅ Completed', tasks: [], isExpanded: false },
   ]);
 
   useEffect(() => {
     const fetchTasks = async () => {
       const response = await Promise.resolve(mockTasks);
       const userTasks = response.filter(task => task.assignee?.id === currentDeveloper.id);
+      setTasks(userTasks);
       
-      // Organize tasks into groups
+      // Organize tasks into groups based on status and priority
+      const groupedTasks = {
+        priority: userTasks.filter(task => task.priority === 'high' && task.status === 'todo'),
+        in_progress: userTasks.filter(task => task.status === 'in_progress'),
+        review: userTasks.filter(task => task.status === 'review'),
+        completed: userTasks.filter(task => task.status === 'done'),
+      };
+
       setTaskGroups(prev => prev.map(group => ({
         ...group,
-        tasks: userTasks.filter(task => {
-          switch (group.title) {
-            case '🎯 Priority Tasks':
-              return task.priority === 'high' && task.status !== 'done';
-            case '🚀 In Progress':
-              return task.status === 'in_progress';
-            case '📝 To Review':
-              return task.status === 'review';
-            case '✅ Completed':
-              return task.status === 'done';
-            default:
-              return false;
-          }
-        })
+        tasks: groupedTasks[group.id as keyof typeof groupedTasks] || []
       })));
-
-      setTasks(userTasks);
     };
 
     fetchTasks();
-  }, []);
+  }, [currentDeveloper.id]);
 
   useEffect(() => {
     // Update stats
@@ -245,6 +240,86 @@ const DeveloperPage: React.FC = () => {
     console.log('Quick add to:', groupTitle);
   };
 
+  const handleDragEnd = (result: DropResult) => {
+    const { destination, source, draggableId } = result;
+
+    // Drop outside the list or no change
+    if (!destination || (destination.droppableId === source.droppableId && destination.index === source.index)) {
+      return;
+    }
+
+    // Find source and destination groups
+    const sourceGroup = taskGroups.find(g => g.id === source.droppableId);
+    const destGroup = taskGroups.find(g => g.id === destination.droppableId);
+    
+    if (!sourceGroup || !destGroup) return;
+
+    // Find the task being dragged
+    const taskToMove = sourceGroup.tasks.find(t => t.id === draggableId);
+    if (!taskToMove) return;
+
+    // Create new arrays
+    const newSourceTasks = Array.from(sourceGroup.tasks);
+    const newDestTasks = source.droppableId === destination.droppableId 
+      ? newSourceTasks 
+      : Array.from(destGroup.tasks);
+
+    // Remove from source
+    newSourceTasks.splice(source.index, 1);
+
+    // Add to destination
+    if (source.droppableId === destination.droppableId) {
+      newSourceTasks.splice(destination.index, 0, taskToMove);
+    } else {
+      newDestTasks.splice(destination.index, 0, taskToMove);
+
+      // Update task status based on destination
+      const newStatus = (() => {
+        switch (destination.droppableId) {
+          case 'priority': return 'todo';
+          case 'in_progress': return 'in_progress';
+          case 'review': return 'review';
+          case 'completed': return 'done';
+          default: return taskToMove.status;
+        }
+      })();
+
+      // Only create activity if status changed
+      if (newStatus !== taskToMove.status) {
+        const newActivity: ActivityItem = {
+          id: Math.random().toString(36).substr(2, 9),
+          type: 'status_change',
+          content: `Status changed from ${taskToMove.status} to ${newStatus}`,
+          user: {
+            id: currentDeveloper.id,
+            name: currentDeveloper.name,
+            email: '',
+          },
+          timestamp: new Date(),
+        };
+
+        taskToMove.activities = [...taskToMove.activities, newActivity];
+        taskToMove.status = newStatus;
+
+        // Update main tasks array
+        setTasks(prev => prev.map(task => 
+          task.id === taskToMove.id ? taskToMove : task
+        ));
+      }
+    }
+
+    // Update taskGroups state
+    setTaskGroups(prev => prev.map(group => {
+      if (group.id === source.droppableId) {
+        return { ...group, tasks: newSourceTasks };
+      }
+      if (group.id === destination.droppableId) {
+        return { ...group, tasks: newDestTasks };
+      }
+      return group;
+    }));
+  };
+
   return (
     <div className="p-6">
       <div className="mb-8">
@@ -335,10 +410,22 @@ const DeveloperPage: React.FC = () => {
         </div>
       )}
 
-      {/* Notion-like Task View */}
+      {/* Notion-style Board View */}
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold">My Tasks</h2>
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-4">
+            <h2 className="text-2xl font-bold">My Tasks</h2>
+            <div className="flex items-center gap-2 text-gray-500 text-sm">
+              <button className="flex items-center gap-1 px-2 py-1 hover:bg-gray-100 rounded">
+                <FiFilter className="w-4 h-4" />
+                <span>Filter</span>
+              </button>
+              <button className="flex items-center gap-1 px-2 py-1 hover:bg-gray-100 rounded">
+                <FiBarChart2 className="w-4 h-4" />
+                <span>Sort</span>
+              </button>
+            </div>
+          </div>
           <div className="flex items-center gap-4">
             <div className="relative">
               <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -350,122 +437,142 @@ const DeveloperPage: React.FC = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <button
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-            >
+            <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
               <FiPlus className="w-5 h-5" />
               <span>New Task</span>
             </button>
           </div>
         </div>
 
-        {/* Task Groups */}
-        <div className="space-y-4">
-          {taskGroups.map(group => (
-            <div key={group.title} className="bg-white rounded-lg shadow-sm">
-              {/* Group Header */}
+        {/* Horizontal Scrolling Board */}
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <div className="flex gap-6 overflow-x-auto pb-6 min-h-[calc(100vh-400px)]">
+            {taskGroups.map(group => (
               <div 
-                className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50"
-                onClick={() => toggleGroupExpansion(group.title)}
+                key={group.id} 
+                className="flex-none w-80 bg-gray-50 rounded-lg"
               >
-                <div className="flex items-center gap-2">
-                  {group.isExpanded ? <FiChevronDown className="w-5 h-5" /> : <FiChevronRight className="w-5 h-5" />}
-                  <h3 className="text-lg font-medium">{group.title}</h3>
-                  <span className="text-sm text-gray-500">({group.tasks.length})</span>
+                {/* Column Header */}
+                <div className="p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg font-medium">{group.title}</span>
+                    <span className="text-sm text-gray-500 bg-gray-200 px-2 py-0.5 rounded-full">
+                      {group.tasks.length}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => handleQuickAdd(group.title)}
+                    className="p-1 hover:bg-gray-200 rounded transition-colors"
+                  >
+                    <FiPlus className="w-4 h-4 text-gray-600" />
+                  </button>
                 </div>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleQuickAdd(group.title);
-                  }}
-                  className="p-2 hover:bg-gray-100 rounded-lg"
-                >
-                  <FiPlus className="w-4 h-4 text-gray-600" />
-                </button>
-              </div>
 
-              {/* Task List */}
-              {group.isExpanded && (
-                <div className="divide-y divide-gray-100">
-                  {group.tasks.map(task => (
-                    <div 
-                      key={task.id}
-                      className="p-4 hover:bg-gray-50 transition-colors cursor-pointer"
+                {/* Droppable Column Content */}
+                <Droppable droppableId={group.id}>
+                  {(provided, snapshot) => (
+                    <div
+                      ref={provided.innerRef}
+                      {...provided.droppableProps}
+                      className={`p-2 space-y-2 min-h-[200px] transition-colors ${
+                        snapshot.isDraggingOver ? 'bg-blue-50' : ''
+                      }`}
                     >
-                      <div className="flex items-start gap-4">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h4 className="font-medium">{task.title}</h4>
-                            <span className={`text-xs px-2 py-1 rounded-full ${
-                              task.priority === 'high' ? 'bg-red-100 text-red-800' :
-                              task.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                              'bg-gray-100 text-gray-800'
-                            }`}>
-                              {task.priority}
-                            </span>
-                          </div>
-                          <p className="text-sm text-gray-600 mb-2">{task.description}</p>
-                          <div className="flex items-center gap-4 text-sm text-gray-500">
-                            <div className="flex items-center gap-1">
-                              <FiCalendar className="w-4 h-4" />
-                              <span>Due {new Date(task.dueDate).toLocaleDateString()}</span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <FiClock className="w-4 h-4" />
-                              <span>{formatTime(task.timeSpent)} / {formatTime(task.timeEstimate)}</span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <span className="text-gray-500">Project:</span>
-                              <span className="font-medium">{task.project}</span>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {isTracking !== task.id ? (
-                            <button
-                              onClick={() => handleStartTracking(task)}
-                              className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
-                              disabled={!!isTracking}
+                      {group.tasks.map((task, index) => (
+                        <Draggable key={task.id} draggableId={task.id} index={index}>
+                          {(provided, snapshot) => (
+                            <div
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              {...provided.dragHandleProps}
+                              className={`
+                                bg-white rounded-lg shadow-sm p-3 
+                                ${snapshot.isDragging ? 'shadow-lg ring-2 ring-blue-500 ring-opacity-50' : ''}
+                                hover:shadow-md transition-all cursor-grab active:cursor-grabbing
+                                border border-gray-200 hover:border-blue-300
+                              `}
                             >
-                              Start
-                            </button>
-                          ) : (
-                            <button
-                              onClick={handleStopTracking}
-                              className="px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700"
-                            >
-                              Stop
-                            </button>
-                          )}
-                          <button className="p-1 hover:bg-gray-100 rounded">
-                            <FiMoreHorizontal className="w-4 h-4 text-gray-600" />
-                          </button>
-                        </div>
-                      </div>
+                              {/* Task Priority Indicator */}
+                              <div className="flex items-center gap-2 mb-2">
+                                <div className={`w-2 h-2 rounded-full ${
+                                  task.priority === 'high' ? 'bg-red-500' :
+                                  task.priority === 'medium' ? 'bg-yellow-500' :
+                                  'bg-gray-500'
+                                }`} />
+                                <h4 className="font-medium text-gray-900">{task.title}</h4>
+                              </div>
 
-                      {/* Progress Bar */}
-                      <div className="mt-2">
-                        <div className="w-full bg-gray-200 rounded-full h-1">
-                          <div
-                            className="bg-blue-600 rounded-full h-1"
-                            style={{
-                              width: `${Math.min((task.timeSpent / task.timeEstimate) * 100, 100)}%`
-                            }}
-                          />
+                              {/* Task Description */}
+                              <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+                                {task.description}
+                              </p>
+
+                              {/* Task Metadata */}
+                              <div className="flex flex-wrap gap-2 text-xs">
+                                <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded-full">
+                                  {task.project}
+                                </span>
+                                <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded-full flex items-center gap-1">
+                                  <FiCalendar className="w-3 h-3" />
+                                  {new Date(task.dueDate).toLocaleDateString()}
+                                </span>
+                                <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded-full flex items-center gap-1">
+                                  <FiClock className="w-3 h-3" />
+                                  {formatTime(task.timeSpent)}
+                                </span>
+                              </div>
+
+                              {/* Progress Bar */}
+                              <div className="mt-3">
+                                <div className="w-full bg-gray-200 rounded-full h-1">
+                                  <div
+                                    className="bg-blue-600 rounded-full h-1 transition-all"
+                                    style={{
+                                      width: `${Math.min((task.timeSpent / task.timeEstimate) * 100, 100)}%`
+                                    }}
+                                  />
+                                </div>
+                              </div>
+
+                              {/* Quick Actions */}
+                              <div className="mt-3 flex items-center justify-between">
+                                {isTracking !== task.id ? (
+                                  <button
+                                    onClick={() => handleStartTracking(task)}
+                                    className="text-xs px-2 py-1 text-blue-600 hover:bg-blue-50 rounded"
+                                    disabled={!!isTracking}
+                                  >
+                                    Start
+                                  </button>
+                                ) : (
+                                  <button
+                                    onClick={handleStopTracking}
+                                    className="text-xs px-2 py-1 text-red-600 hover:bg-red-50 rounded"
+                                  >
+                                    Stop
+                                  </button>
+                                )}
+                                <button className="p-1 hover:bg-gray-100 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <FiMoreHorizontal className="w-4 h-4 text-gray-600" />
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </Draggable>
+                      ))}
+                      {provided.placeholder}
+                      {group.tasks.length === 0 && (
+                        <div className="p-4 text-center text-gray-500 text-sm border-2 border-dashed border-gray-200 rounded-lg">
+                          Drop tasks here
                         </div>
-                      </div>
-                    </div>
-                  ))}
-                  {group.tasks.length === 0 && (
-                    <div className="p-4 text-center text-gray-500 text-sm">
-                      No tasks in this group. Click + to add one.
+                      )}
                     </div>
                   )}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
+                </Droppable>
+              </div>
+            ))}
+          </div>
+        </DragDropContext>
       </div>
     </div>
   );

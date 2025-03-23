@@ -1,16 +1,17 @@
 import React from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
-import { FiList, FiClock, FiUser, FiUsers, FiFolder } from 'react-icons/fi';
+import { FiGrid, FiImage, FiBox, FiLayers, FiClock, FiUser } from 'react-icons/fi';
 
-const DeveloperLayout: React.FC = () => {
+const DesignerLayout: React.FC = () => {
   const location = useLocation();
 
   const navItems = [
-    { to: '/developer/tasks', icon: FiList, label: 'My Tasks' },
-    { to: '/developer/time', icon: FiClock, label: 'Time Tracking' },
-    { to: '/developer/team', icon: FiUsers, label: 'Team' },
-    { to: '/developer/projects', icon: FiFolder, label: 'Projects' },
-    { to: '/developer/profile', icon: FiUser, label: 'Profile' },
+    { to: '/designer/tasks', icon: FiGrid, label: 'My Tasks' },
+    { to: '/designer/assets', icon: FiImage, label: 'Asset Library' },
+    { to: '/designer/components', icon: FiBox, label: 'Components' },
+    { to: '/designer/projects', icon: FiLayers, label: 'Projects' },
+    { to: '/designer/time', icon: FiClock, label: 'Time Tracking' },
+    { to: '/designer/profile', icon: FiUser, label: 'Profile' },
   ];
 
   return (
@@ -18,7 +19,7 @@ const DeveloperLayout: React.FC = () => {
       {/* Sidebar */}
       <div className="w-64 bg-white border-r border-gray-200">
         <div className="p-4">
-          <h1 className="text-xl font-bold text-gray-800">Develope</h1>
+          <h1 className="text-xl font-bold text-gray-800">Design Portal</h1>
         </div>
         <nav className="mt-4">
           {navItems.map(item => (
@@ -44,4 +45,4 @@ const DeveloperLayout: React.FC = () => {
   );
 };
 
-export default DeveloperLayout; 
+export default DesignerLayout; 

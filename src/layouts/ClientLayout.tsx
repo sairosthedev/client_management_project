@@ -1,16 +1,25 @@
 import React from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
-import { FiList, FiClock, FiUser, FiUsers, FiFolder } from 'react-icons/fi';
+import {
+  FiGrid,
+  FiFolder,
+  FiClock,
+  FiFileText,
+  FiMessageSquare,
+  FiDollarSign,
+  FiUser,
+  FiHelpCircle
+} from 'react-icons/fi';
 
-const DeveloperLayout: React.FC = () => {
+const ClientLayout: React.FC = () => {
   const location = useLocation();
 
   const navItems = [
-    { to: '/developer/tasks', icon: FiList, label: 'My Tasks' },
-    { to: '/developer/time', icon: FiClock, label: 'Time Tracking' },
-    { to: '/developer/team', icon: FiUsers, label: 'Team' },
-    { to: '/developer/projects', icon: FiFolder, label: 'Projects' },
-    { to: '/developer/profile', icon: FiUser, label: 'Profile' },
+    { to: '/client/dashboard', icon: FiGrid, label: 'Dashboard' },
+    { to: '/client/projects', icon: FiFolder, label: 'My Projects' },
+    { to: '/client/documents', icon: FiFileText, label: 'Documents' },
+    { to: '/client/messages', icon: FiMessageSquare, label: 'Messages' },
+    { to: '/client/profile', icon: FiUser, label: 'Profile' },
   ];
 
   return (
@@ -18,7 +27,7 @@ const DeveloperLayout: React.FC = () => {
       {/* Sidebar */}
       <div className="w-64 bg-white border-r border-gray-200">
         <div className="p-4">
-          <h1 className="text-xl font-bold text-gray-800">Develope</h1>
+          <h1 className="text-xl font-bold text-gray-800">Client Portal</h1>
         </div>
         <nav className="mt-4">
           {navItems.map(item => (
@@ -26,7 +35,7 @@ const DeveloperLayout: React.FC = () => {
               key={item.to}
               to={item.to}
               className={`flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors ${
-                location.pathname === item.to ? 'bg-blue-50 text-blue-600 border-r-4 border-blue-600' : ''
+                location.pathname === item.to ? 'bg-green-50 text-green-600 border-r-4 border-green-600' : ''
               }`}
             >
               <item.icon className="w-5 h-5" />
@@ -44,4 +53,4 @@ const DeveloperLayout: React.FC = () => {
   );
 };
 
-export default DeveloperLayout; 
+export default ClientLayout; 

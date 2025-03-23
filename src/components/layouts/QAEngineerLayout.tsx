@@ -1,16 +1,17 @@
 import React from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
-import { FiList, FiClock, FiUser, FiUsers, FiFolder } from 'react-icons/fi';
+import { FiCheckSquare, FiAlertTriangle, FiActivity, FiPackage, FiClipboard, FiUser } from 'react-icons/fi';
 
-const DeveloperLayout: React.FC = () => {
+const QAEngineerLayout: React.FC = () => {
   const location = useLocation();
 
   const navItems = [
-    { to: '/developer/tasks', icon: FiList, label: 'My Tasks' },
-    { to: '/developer/time', icon: FiClock, label: 'Time Tracking' },
-    { to: '/developer/team', icon: FiUsers, label: 'Team' },
-    { to: '/developer/projects', icon: FiFolder, label: 'Projects' },
-    { to: '/developer/profile', icon: FiUser, label: 'Profile' },
+    { to: '/qa/tests', icon: FiCheckSquare, label: 'Test Cases' },
+    { to: '/qa/bugs', icon: FiAlertTriangle, label: 'Bug Tracking' },
+    { to: '/qa/metrics', icon: FiActivity, label: 'Quality Metrics' },
+    { to: '/qa/releases', icon: FiPackage, label: 'Releases' },
+    { to: '/qa/reports', icon: FiClipboard, label: 'Reports' },
+    { to: '/qa/profile', icon: FiUser, label: 'Profile' },
   ];
 
   return (
@@ -18,7 +19,7 @@ const DeveloperLayout: React.FC = () => {
       {/* Sidebar */}
       <div className="w-64 bg-white border-r border-gray-200">
         <div className="p-4">
-          <h1 className="text-xl font-bold text-gray-800">Develope</h1>
+          <h1 className="text-xl font-bold text-gray-800">Quality Assurance</h1>
         </div>
         <nav className="mt-4">
           {navItems.map(item => (
@@ -44,4 +45,4 @@ const DeveloperLayout: React.FC = () => {
   );
 };
 
-export default DeveloperLayout; 
+export default QAEngineerLayout; 

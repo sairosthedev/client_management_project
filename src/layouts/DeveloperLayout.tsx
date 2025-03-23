@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
-import { FiList, FiClock, FiUser, FiUsers, FiFolder } from 'react-icons/fi';
+import { FiList, FiClock, FiUsers, FiFolder, FiUser } from 'react-icons/fi';
 
 const DeveloperLayout: React.FC = () => {
   const location = useLocation();
@@ -18,7 +18,7 @@ const DeveloperLayout: React.FC = () => {
       {/* Sidebar */}
       <div className="w-64 bg-white border-r border-gray-200">
         <div className="p-4">
-          <h1 className="text-xl font-bold text-gray-800">Develope</h1>
+          <h1 className="text-xl font-bold text-gray-800">Developer Portal</h1>
         </div>
         <nav className="mt-4">
           {navItems.map(item => (

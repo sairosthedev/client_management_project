@@ -1,16 +1,28 @@
 import React from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
-import { FiList, FiClock, FiUser, FiUsers, FiFolder } from 'react-icons/fi';
+import {
+  FiGrid,
+  FiUsers,
+  FiFolder,
+  FiCalendar,
+  FiBarChart2,
+  FiClock,
+  FiCheckSquare,
+  FiUser
+} from 'react-icons/fi';
 
-const DeveloperLayout: React.FC = () => {
+const ProjectManagerLayout: React.FC = () => {
   const location = useLocation();
 
   const navItems = [
-    { to: '/developer/tasks', icon: FiList, label: 'My Tasks' },
-    { to: '/developer/time', icon: FiClock, label: 'Time Tracking' },
-    { to: '/developer/team', icon: FiUsers, label: 'Team' },
-    { to: '/developer/projects', icon: FiFolder, label: 'Projects' },
-    { to: '/developer/profile', icon: FiUser, label: 'Profile' },
+    { to: '/manager/dashboard', icon: FiGrid, label: 'Dashboard' },
+    { to: '/manager/projects', icon: FiFolder, label: 'Projects' },
+    { to: '/manager/team', icon: FiUsers, label: 'Team Management' },
+    { to: '/manager/tasks', icon: FiCheckSquare, label: 'Task Board' },
+    { to: '/manager/calendar', icon: FiCalendar, label: 'Calendar' },
+    { to: '/manager/timesheet', icon: FiClock, label: 'Timesheets' },
+    { to: '/manager/reports', icon: FiBarChart2, label: 'Reports' },
+    { to: '/manager/profile', icon: FiUser, label: 'Profile' },
   ];
 
   return (
@@ -18,7 +30,7 @@ const DeveloperLayout: React.FC = () => {
       {/* Sidebar */}
       <div className="w-64 bg-white border-r border-gray-200">
         <div className="p-4">
-          <h1 className="text-xl font-bold text-gray-800">Develope</h1>
+          <h1 className="text-xl font-bold text-gray-800">Project Management</h1>
         </div>
         <nav className="mt-4">
           {navItems.map(item => (
@@ -44,4 +56,4 @@ const DeveloperLayout: React.FC = () => {
   );
 };
 
-export default DeveloperLayout; 
+export default ProjectManagerLayout; 
