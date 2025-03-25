@@ -1,4 +1,3 @@
-import React from 'react';
 import { Users, Briefcase, CheckSquare, TrendingUp } from 'lucide-react';
 
 const AdminDashboard = () => {

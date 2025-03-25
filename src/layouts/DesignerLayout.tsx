@@ -8,11 +8,14 @@ import {
   FiClock,
   FiFolder,
   FiUser,
-  FiMessageSquare
+  FiMessageSquare,
+  FiLogOut
 } from 'react-icons/fi';
+import { useAuth } from '../contexts/AuthContext';
 
 const DesignerLayout: React.FC = () => {
   const location = useLocation();
+  const { logout } = useAuth();
 
   const navItems = [
     { to: '/designer/dashboard', icon: FiGrid, label: 'Dashboard' },
@@ -28,11 +31,11 @@ const DesignerLayout: React.FC = () => {
   return (
     <div className="flex h-screen bg-gray-100">
       {/* Sidebar */}
-      <div className="w-64 bg-white border-r border-gray-200">
+      <div className="w-64 bg-white border-r border-gray-200 flex flex-col">
         <div className="p-4">
           <h1 className="text-xl font-bold text-gray-800">Design Studio</h1>
         </div>
-        <nav className="mt-4">
+        <nav className="mt-4 flex-1">
           {navItems.map(item => (
             <Link
               key={item.to}
@@ -46,6 +49,15 @@ const DesignerLayout: React.FC = () => {
             </Link>
           ))}
         </nav>
+        <div className="border-t border-gray-200 p-4">
+          <button 
+            onClick={logout} 
+            className="flex items-center gap-3 w-full px-4 py-2 text-red-600 hover:bg-red-50 rounded transition-colors"
+          >
+            <FiLogOut className="w-5 h-5" />
+            <span>Logout</span>
+          </button>
+        </div>
       </div>
 
       {/* Main Content */}
