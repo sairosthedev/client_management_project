@@ -9,14 +9,11 @@ import {
   FiBarChart2,
   FiShield,
   FiDatabase,
-  FiBriefcase,
-  FiLogOut
+  FiBriefcase
 } from 'react-icons/fi';
-import { useAuth } from '../contexts/AuthContext';
 
 const AdminLayout: React.FC = () => {
-  const location = useLocation();
-  const { logout } = useAuth();
+  const location = useLocation(); 
 
   const navItems = [
     { to: '/admin/dashboard', icon: FiGrid, label: 'Dashboard' },
@@ -33,11 +30,11 @@ const AdminLayout: React.FC = () => {
   return (
     <div className="flex h-screen bg-gray-100">
       {/* Sidebar */}
-      <div className="w-64 bg-white border-r border-gray-200 flex flex-col">
+      <div className="w-64 bg-white border-r border-gray-200">
         <div className="p-4">
           <h1 className="text-xl font-bold text-gray-800">Admin Portal</h1>
         </div>
-        <nav className="mt-4 flex-1">
+        <nav className="mt-4">
           {navItems.map(item => (
             <Link
               key={item.to}
@@ -51,15 +48,6 @@ const AdminLayout: React.FC = () => {
             </Link>
           ))}
         </nav>
-        <div className="border-t border-gray-200 p-4">
-          <button 
-            onClick={logout} 
-            className="flex items-center gap-3 w-full px-4 py-2 text-red-600 hover:bg-red-50 rounded transition-colors"
-          >
-            <FiLogOut className="w-5 h-5" />
-            <span>Logout</span>
-          </button>
-        </div>
       </div>
 
       {/* Main Content */}

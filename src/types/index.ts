@@ -43,9 +43,9 @@ export interface Task {
   assignee?: TeamMemberType;
   dueDate: Date;
   project: string;
-  dependencies: string[]; // IDs of tasks that this task depends on
+  dependencies: string[]; 
   files: FileAttachmentType[];
   activities: ActivityItem[];
-  timeEstimate: number; // in minutes
-  timeSpent: number; // in minutes
+  timeEstimate: number;
+  timeSpent: number; 
 } 

@@ -321,10 +321,10 @@ const AuthPage: React.FC = () => {
               </p>
               <div className="mt-2 flex items-center">
                 <div className="h-10 w-10 rounded-full bg-indigo-800 flex items-center justify-center text-white font-bold">
-                  JP
+                 MS
                 </div>
                 <div className="ml-3">
-                  <p className="text-white font-medium">Jane Phillips</p>
+                  <p className="text-white font-medium">Macdonald Sairos</p>
                   <p className="text-indigo-300 text-sm">Product Manager</p>
                 </div>
               </div>

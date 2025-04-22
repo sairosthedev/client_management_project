@@ -55,6 +55,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
     canManageUsers: true,
     canEditSettings: true
   },
+  
   developer: {
     canCreateProject: false,
     canAssignTasks: false,
@@ -63,6 +64,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
     canManageUsers: false,
     canEditSettings: false
   },
+
   project_manager: {
     canCreateProject: true,
     canAssignTasks: true,
@@ -71,6 +73,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
     canManageUsers: false,
     canEditSettings: false
   },
+
   client: {
     canCreateProject: false,
     canAssignTasks: false,
@@ -79,6 +82,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
     canManageUsers: false,
     canEditSettings: false
   },
+
   qa_engineer: {
     canCreateProject: false,
     canAssignTasks: false,
@@ -87,6 +91,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
     canManageUsers: false,
     canEditSettings: false
   },
+
   designer: {
     canCreateProject: false,
     canAssignTasks: false,

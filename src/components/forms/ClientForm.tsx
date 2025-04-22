@@ -97,7 +97,7 @@ const ClientForm: React.FC<ClientFormProps> = ({
             onChange={handleChange}
             required
             className="pl-10 w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="john@example.com"
+            placeholder="sairosmac@gmail.com"
           />
         </div>
       </div>
@@ -117,7 +117,7 @@ const ClientForm: React.FC<ClientFormProps> = ({
             onChange={handleChange}
             required
             className="pl-10 w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="+1 (555) 123-4567"
+            placeholder="+263 (78) 603-3973"
           />
         </div>
       </div>
