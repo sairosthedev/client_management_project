@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { UserContext } from '../../App';
+import { UserContext } from '../../contexts/UserContextProvider';
 import { FiMail, FiUser, FiBriefcase, FiClock } from 'react-icons/fi';
 
 const ProfilePage: React.FC = () => {

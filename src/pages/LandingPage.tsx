@@ -36,14 +36,14 @@ const LiquidBackground = ({ children }: { children: React.ReactNode }) => {
           />
           <defs>
             <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" style={{ stopColor: "#E8F4FD" }} />
-              <stop offset="100%" style={{ stopColor: "#D5E6F7" }} />
+              <stop offset="0%" style={{ stopColor: "#000000" }} />
+              <stop offset="100%" style={{ stopColor: "#000000" }} />
             </linearGradient>
           </defs>
         </svg>
         <div className="absolute inset-0 opacity-20">
           <motion.div
-            className="absolute rounded-full bg-blue-300 blur-3xl"
+            className="absolute rounded-full bg-[#FF6B00] blur-3xl"
             style={{ width: '40%', height: '40%', left: '10%', top: '30%' }}
             animate={{
               x: [0, 30, 0],
@@ -52,7 +52,7 @@ const LiquidBackground = ({ children }: { children: React.ReactNode }) => {
             transition={{ repeat: Infinity, duration: 8, ease: "easeInOut" }}
           />
           <motion.div
-            className="absolute rounded-full bg-cyan-300 blur-3xl"
+            className="absolute rounded-full bg-[#FF8C00] blur-3xl"
             style={{ width: '35%', height: '35%', right: '10%', bottom: '20%' }}
             animate={{
               x: [0, -20, 0],
@@ -77,7 +77,7 @@ const BubbleEffect = ({ children }: { children: React.ReactNode }) => {
     >
       {children}
       <motion.div
-        className="absolute bottom-0 left-0 right-0 h-2 bg-gradient-to-r from-blue-500 to-cyan-400 rounded-b-lg opacity-0"
+        className="absolute bottom-0 left-0 right-0 h-2 bg-[#FF6B00] rounded-b-lg opacity-0"
         whileHover={{ opacity: 1 }}
       />
     </motion.div>
@@ -164,7 +164,7 @@ const ProjectCarousel = () => {
   const getLanguageColor = (language: string) => {
     switch(language) {
       case 'TypeScript':
-        return 'bg-blue-500';
+        return 'bg-blue-600';
       case 'JavaScript':
         return 'bg-yellow-500';
       case 'Jupyter Notebook':
@@ -311,7 +311,7 @@ const LandingPage: React.FC = () => {
     <CarouselContext.Provider value={carouselContext}>
       <div className="min-h-screen bg-white">
         {/* Header/Navigation */}
-        <header className="bg-white border-b border-gray-100">
+        <header className="bg-black border-b border-gray-800">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between h-16">
               <div className="flex items-center">
@@ -321,14 +321,14 @@ const LandingPage: React.FC = () => {
                     alt="Clarity Smart Tech" 
                     className="h-10 w-auto"
                   />
-                  <span className="ml-2 text-lg font-medium text-gray-900">Clarity Smart Tech</span>
+                  <span className="ml-2 text-lg font-medium text-white">Clarity Smart Tech</span>
                 </div>
               </div>
               <div className="flex items-center">
-                <Link to="/auth" className="ml-6 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-blue-600 bg-white hover:bg-gray-50">
+                <Link to="/auth" className="ml-6 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-black bg-[#FF6B00] hover:bg-[#FF8C00]">
                   Sign in
                 </Link>
-                <Link to="/auth" className="ml-3 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+                <Link to="/auth" className="ml-3 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-black hover:bg-gray-800">
                   Sign up
                 </Link>
               </div>
@@ -343,13 +343,13 @@ const LandingPage: React.FC = () => {
               <div className="lg:grid lg:grid-cols-12 lg:gap-8">
                 <div className="sm:text-center md:max-w-2xl md:mx-auto lg:col-span-6 lg:text-left">
                   <motion.h1 
-                    className="text-4xl tracking-tight font-extrabold text-gray-900 sm:text-5xl md:text-6xl"
+                    className="text-4xl tracking-tight font-extrabold text-white sm:text-5xl md:text-6xl"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8 }}
                   >
                     <span className="block">Smart Solutions for</span>
-                    <span className="block text-blue-600">Client Management</span>
+                    <span className="block text-[#FF6B00]">Client Management</span>
                   </motion.h1>
                   <motion.p 
                     className="mt-3 text-base text-gray-500 sm:mt-5 sm:text-xl lg:text-lg xl:text-xl"
@@ -369,7 +369,7 @@ const LandingPage: React.FC = () => {
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                     >
-                      <Link to="/auth" className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 md:text-lg">
+                      <Link to="/auth" className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-black bg-[#FF6B00] hover:bg-[#FF8C00] md:text-lg">
                         Experience the Clarity Difference
                       </Link>
                     </motion.div>
@@ -455,8 +455,8 @@ const LandingPage: React.FC = () => {
                 >
                   <BubbleEffect>
                     <div className="bg-white rounded-lg px-6 py-8 shadow-sm border border-gray-100 h-full">
-                      <div className="p-3 rounded-full bg-blue-100 inline-block">
-                        <Briefcase className="h-6 w-6 text-blue-600" />
+                      <div className="p-3 rounded-full bg-[#FF6B00] bg-opacity-10 inline-block">
+                        <Briefcase className="h-6 w-6 text-[#FF6B00]" />
                       </div>
                       <h3 className="mt-4 text-lg font-medium text-gray-900">Project Management</h3>
                       <p className="mt-2 text-base text-gray-500">
@@ -474,8 +474,8 @@ const LandingPage: React.FC = () => {
                 >
                   <BubbleEffect>
                     <div className="bg-white rounded-lg px-6 py-8 shadow-sm border border-gray-100 h-full">
-                      <div className="p-3 rounded-full bg-cyan-100 inline-block">
-                        <Users className="h-6 w-6 text-cyan-600" />
+                      <div className="p-3 rounded-full bg-[#FF6B00] bg-opacity-10 inline-block">
+                        <Users className="h-6 w-6 text-[#FF6B00]" />
                       </div>
                       <h3 className="mt-4 text-lg font-medium text-gray-900">Team Collaboration</h3>
                       <p className="mt-2 text-base text-gray-500">
@@ -493,8 +493,8 @@ const LandingPage: React.FC = () => {
                 >
                   <BubbleEffect>
                     <div className="bg-white rounded-lg px-6 py-8 shadow-sm border border-gray-100 h-full">
-                      <div className="p-3 rounded-full bg-sky-100 inline-block">
-                        <BarChart2 className="h-6 w-6 text-sky-600" />
+                      <div className="p-3 rounded-full bg-[#FF6B00] bg-opacity-10 inline-block">
+                        <BarChart2 className="h-6 w-6 text-[#FF6B00]" />
                       </div>
                       <h3 className="mt-4 text-lg font-medium text-gray-900">Analytics & Insights</h3>
                       <p className="mt-2 text-base text-gray-500">
@@ -512,8 +512,8 @@ const LandingPage: React.FC = () => {
                 >
                   <BubbleEffect>
                     <div className="bg-white rounded-lg px-6 py-8 shadow-sm border border-gray-100 h-full">
-                      <div className="p-3 rounded-full bg-blue-50 inline-block">
-                        <Clock className="h-6 w-6 text-blue-500" />
+                      <div className="p-3 rounded-full bg-[#FF6B00] bg-opacity-10 inline-block">
+                        <Clock className="h-6 w-6 text-[#FF6B00]" />
                       </div>
                       <h3 className="mt-4 text-lg font-medium text-gray-900">Time Tracking</h3>
                       <p className="mt-2 text-base text-gray-500">
@@ -531,8 +531,8 @@ const LandingPage: React.FC = () => {
                 >
                   <BubbleEffect>
                     <div className="bg-white rounded-lg px-6 py-8 shadow-sm border border-gray-100 h-full">
-                      <div className="p-3 rounded-full bg-cyan-50 inline-block">
-                        <CheckCircle2 className="h-6 w-6 text-cyan-500" />
+                      <div className="p-3 rounded-full bg-[#FF6B00] bg-opacity-10 inline-block">
+                        <CheckCircle2 className="h-6 w-6 text-[#FF6B00]" />
                       </div>
                       <h3 className="mt-4 text-lg font-medium text-gray-900">Task Management</h3>
                       <p className="mt-2 text-base text-gray-500">
@@ -550,8 +550,8 @@ const LandingPage: React.FC = () => {
                 >
                   <BubbleEffect>
                     <div className="bg-white rounded-lg px-6 py-8 shadow-sm border border-gray-100 h-full">
-                      <div className="p-3 rounded-full bg-sky-50 inline-block">
-                        <Users className="h-6 w-6 text-sky-500" />
+                      <div className="p-3 rounded-full bg-[#FF6B00] bg-opacity-10 inline-block">
+                        <Users className="h-6 w-6 text-[#FF6B00]" />
                       </div>
                       <h3 className="mt-4 text-lg font-medium text-gray-900">Client Portal</h3>
                       <p className="mt-2 text-base text-gray-500">
@@ -566,9 +566,9 @@ const LandingPage: React.FC = () => {
         </section>
 
         {/* Projects */}
-        <section className="py-20 bg-gradient-to-b from-white to-blue-50 relative overflow-hidden">
+        <section className="py-20 bg-black relative overflow-hidden">
           <motion.div
-            className="absolute rounded-full bg-blue-100 blur-3xl opacity-30"
+            className="absolute rounded-full bg-[#FF6B00] blur-3xl opacity-30"
             style={{ width: '50%', height: '50%', right: '-10%', top: '-10%' }}
             animate={{
               x: [0, -30, 0],
@@ -577,7 +577,7 @@ const LandingPage: React.FC = () => {
             transition={{ repeat: Infinity, duration: 20, ease: "easeInOut" }}
           />
           <motion.div
-            className="absolute rounded-full bg-cyan-100 blur-3xl opacity-30"
+            className="absolute rounded-full bg-[#FF8C00] blur-3xl opacity-30"
             style={{ width: '40%', height: '40%', left: '-5%', bottom: '-5%' }}
             animate={{
               x: [0, 20, 0],
@@ -594,10 +594,10 @@ const LandingPage: React.FC = () => {
               transition={{ duration: 0.6 }}
               viewport={{ once: true }}
             >
-              <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl mb-4">
+              <h2 className="text-3xl font-extrabold text-white sm:text-4xl mb-4">
                 Our Project Portfolio
               </h2>
-              <p className="max-w-2xl text-xl text-gray-500 mx-auto">
+              <p className="max-w-2xl text-xl text-gray-300 mx-auto">
                 Explore our diverse range of projects and solutions
               </p>
             </motion.div>
@@ -613,21 +613,21 @@ const LandingPage: React.FC = () => {
             >
               <motion.button
                 onClick={nextSlide}
-                className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 shadow-sm"
+                className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-black bg-[#FF6B00] hover:bg-[#FF8C00] shadow-sm"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
                 <svg className="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
                 </svg>
-                Portfolio Projects
+                View All Projects
               </motion.button>
             </motion.div>
           </div>
         </section>
 
         {/* Testimonial */}
-        <section className="bg-blue-700 py-16 relative overflow-hidden">
+        <section className="bg-[#FF6B00] py-16 relative overflow-hidden">
           <motion.div 
             className="absolute inset-0 opacity-20"
             initial={{ opacity: 0 }}
@@ -635,7 +635,7 @@ const LandingPage: React.FC = () => {
             transition={{ duration: 1 }}
           >
             <motion.div
-              className="absolute rounded-full bg-blue-500 blur-3xl"
+              className="absolute rounded-full bg-[#FF8C00] blur-3xl"
               style={{ width: '50%', height: '50%', left: '10%', top: '10%' }}
               animate={{
                 x: [0, 30, 0],
@@ -644,7 +644,7 @@ const LandingPage: React.FC = () => {
               transition={{ repeat: Infinity, duration: 20, ease: "easeInOut" }}
             />
             <motion.div
-              className="absolute rounded-full bg-cyan-500 blur-3xl"
+              className="absolute rounded-full bg-[#FFA500] blur-3xl"
               style={{ width: '30%', height: '30%', right: '20%', top: '40%' }}
               animate={{
                 x: [0, -20, 0],
@@ -742,7 +742,7 @@ const LandingPage: React.FC = () => {
         <section className="bg-white py-16">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div 
-              className="bg-blue-50 rounded-lg overflow-hidden shadow-lg relative"
+              className="bg-black rounded-lg overflow-hidden shadow-lg relative"
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
@@ -750,7 +750,7 @@ const LandingPage: React.FC = () => {
             >
               <div className="absolute inset-0 overflow-hidden">
                 <motion.div
-                  className="absolute rounded-full bg-blue-100 blur-xl"
+                  className="absolute rounded-full bg-[#FF6B00] blur-xl"
                   style={{ width: '30%', height: '30%', right: '5%', top: '20%' }}
                   animate={{
                     x: [0, -10, 0],
@@ -759,7 +759,7 @@ const LandingPage: React.FC = () => {
                   transition={{ repeat: Infinity, duration: 5, ease: "easeInOut" }}
                 />
                 <motion.div
-                  className="absolute rounded-full bg-cyan-100 blur-xl"
+                  className="absolute rounded-full bg-[#FF8C00] blur-xl"
                   style={{ width: '20%', height: '20%', left: '10%', bottom: '20%' }}
                   animate={{
                     x: [0, 15, 0],
@@ -772,7 +772,7 @@ const LandingPage: React.FC = () => {
               <div className="px-6 py-12 sm:px-12 lg:py-16 lg:pr-0 md:flex md:items-center md:justify-between relative z-10">
                 <div>
                   <motion.h2 
-                    className="text-3xl font-extrabold text-gray-900 sm:text-4xl"
+                    className="text-3xl font-extrabold text-white sm:text-4xl"
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6 }}
@@ -781,7 +781,7 @@ const LandingPage: React.FC = () => {
                     <span className="block">Ready to experience the Clarity difference?</span>
                   </motion.h2>
                   <motion.p 
-                    className="mt-3 text-lg text-gray-600"
+                    className="mt-3 text-lg text-gray-300"
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6, delay: 0.1 }}
@@ -802,7 +802,7 @@ const LandingPage: React.FC = () => {
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                     >
-                      <Link to="/auth" className="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+                      <Link to="/auth" className="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-black bg-[#FF6B00] hover:bg-[#FF8C00]">
                         Start Your Free Trial
                       </Link>
                     </motion.div>
@@ -814,7 +814,7 @@ const LandingPage: React.FC = () => {
         </section>
 
         {/* Footer */}
-        <footer className="bg-gray-800">
+        <footer className="bg-black">
           <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8 relative">
             <motion.div 
               className="grid grid-cols-2 gap-8 md:grid-cols-4"
@@ -824,35 +824,35 @@ const LandingPage: React.FC = () => {
               viewport={{ once: true }}
             >
               <div>
-                <h3 className="text-sm font-semibold text-gray-400 tracking-wider uppercase">Products</h3>
+                <h3 className="text-sm font-semibold text-[#FF6B00] tracking-wider uppercase">Products</h3>
                 <ul className="mt-4 space-y-4">
-                  <li><a href="#" className="text-base text-gray-300 hover:text-white">Features</a></li>
-                  <li><a href="#" className="text-base text-gray-300 hover:text-white">Pricing</a></li>
-                  <li><a href="#" className="text-base text-gray-300 hover:text-white">API</a></li>
+                  <li><a href="#" className="text-base text-gray-400 hover:text-white">Features</a></li>
+                  <li><a href="#" className="text-base text-gray-400 hover:text-white">Pricing</a></li>
+                  <li><a href="#" className="text-base text-gray-400 hover:text-white">API</a></li>
                 </ul>
               </div>
               <div>
-                <h3 className="text-sm font-semibold text-gray-400 tracking-wider uppercase">Resources</h3>
+                <h3 className="text-sm font-semibold text-[#FF6B00] tracking-wider uppercase">Resources</h3>
                 <ul className="mt-4 space-y-4">
-                  <li><a href="#" className="text-base text-gray-300 hover:text-white">Documentation</a></li>
-                  <li><a href="#" className="text-base text-gray-300 hover:text-white">Guides</a></li>
-                  <li><a href="#" className="text-base text-gray-300 hover:text-white">Support</a></li>
+                  <li><a href="#" className="text-base text-gray-400 hover:text-white">Documentation</a></li>
+                  <li><a href="#" className="text-base text-gray-400 hover:text-white">Guides</a></li>
+                  <li><a href="#" className="text-base text-gray-400 hover:text-white">Support</a></li>
                 </ul>
               </div>
               <div>
-                <h3 className="text-sm font-semibold text-gray-400 tracking-wider uppercase">Company</h3>
+                <h3 className="text-sm font-semibold text-[#FF6B00] tracking-wider uppercase">Company</h3>
                 <ul className="mt-4 space-y-4">
-                  <li><a href="#" className="text-base text-gray-300 hover:text-white">About</a></li>
-                  <li><a href="#" className="text-base text-gray-300 hover:text-white">Blog</a></li>
-                  <li><a href="#" className="text-base text-gray-300 hover:text-white">Careers</a></li>
+                  <li><a href="#" className="text-base text-gray-400 hover:text-white">About</a></li>
+                  <li><a href="#" className="text-base text-gray-400 hover:text-white">Blog</a></li>
+                  <li><a href="#" className="text-base text-gray-400 hover:text-white">Careers</a></li>
                 </ul>
               </div>
               <div>
-                <h3 className="text-sm font-semibold text-gray-400 tracking-wider uppercase">Legal</h3>
+                <h3 className="text-sm font-semibold text-[#FF6B00] tracking-wider uppercase">Legal</h3>
                 <ul className="mt-4 space-y-4">
-                  <li><a href="#" className="text-base text-gray-300 hover:text-white">Privacy</a></li>
-                  <li><a href="#" className="text-base text-gray-300 hover:text-white">Terms</a></li>
-                  <li><a href="#" className="text-base text-gray-300 hover:text-white">Cookie Policy</a></li>
+                  <li><a href="#" className="text-base text-gray-400 hover:text-white">Privacy</a></li>
+                  <li><a href="#" className="text-base text-gray-400 hover:text-white">Terms</a></li>
+                  <li><a href="#" className="text-base text-gray-400 hover:text-white">Cookie Policy</a></li>
                 </ul>
               </div>
             </motion.div>

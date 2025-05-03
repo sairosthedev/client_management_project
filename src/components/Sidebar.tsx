@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 import { Users, Briefcase, CheckSquare, LayoutDashboard, Bug, Code, Database } from 'lucide-react';
-import { UserContext } from '../App';
+import { UserContext } from '../contexts/UserContextProvider';
 
 interface SidebarProps {
   isOpen: boolean;

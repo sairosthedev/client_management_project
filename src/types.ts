@@ -30,11 +30,6 @@ export interface QAEngineerType extends TeamMemberType {
   testingFrameworks: string[];
 }
 
-export interface DesignerType extends TeamMemberType {
-  designTools: string[];
-  portfolioUrl?: string;
-  specializations: string[];
-}
 
 // Permissions for different roles
 export interface RolePermissions {
@@ -96,7 +91,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
     canCreateProject: false,
     canAssignTasks: false,
     canApproveWork: false,
-    canViewReports: true,
+    canViewReports: false,
     canManageUsers: false,
     canEditSettings: false
   }
