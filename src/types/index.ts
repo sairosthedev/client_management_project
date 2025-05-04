@@ -1,9 +1,13 @@
+export type UserRole = 'developer' | 'designer' | 'project_manager' | 'admin';
+
 export interface TeamMemberType {
   id: string;
   name: string;
   avatar: string;
-  role?: string;
+  role?: UserRole;
   email?: string;
+  skills: string[];
+  projects: string[];
 }
 
 export interface FileAttachmentType {
@@ -34,18 +38,9 @@ export interface ActivityItem {
   };
 }
 
-export interface Task {
+export interface Client {
   id: string;
-  title: string;
-  description: string;
-  status: 'todo' | 'in_progress' | 'review' | 'done';
-  priority: 'low' | 'medium' | 'high';
-  assignee?: TeamMemberType;
-  dueDate: Date;
-  project: string;
-  dependencies: string[]; 
-  files: FileAttachmentType[];
-  activities: ActivityItem[];
-  timeEstimate: number;
-  timeSpent: number; 
+  name: string;
+  company: string;
+  email: string;
 } 

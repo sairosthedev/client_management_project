@@ -1,11 +1,11 @@
-import { TeamMemberType } from '../types';
+import type { TeamMemberType } from '../types';
 
 export const mockUsers: TeamMemberType[] = [
   {
     id: '1',
     name: 'Maria Garcia',
     avatar: 'MG',
-    role: 'Frontend Developer',
+    role: 'developer',
     email: 'maria.garcia@company.com',
     skills: ['React', 'TypeScript', 'UI/UX'],
     projects: ['E-commerce Platform', 'Design System'],
@@ -14,7 +14,7 @@ export const mockUsers: TeamMemberType[] = [
     id: '2',
     name: 'John Smith',
     avatar: 'JS',
-    role: 'Backend Developer',
+    role: 'developer',
     email: 'john.smith@company.com',
     skills: ['Node.js', 'Python', 'AWS'],
     projects: ['API Gateway', 'Authentication Service'],
@@ -23,7 +23,7 @@ export const mockUsers: TeamMemberType[] = [
     id: '3',
     name: 'Sarah Wilson',
     avatar: 'SW',
-    role: 'Project Manager',
+    role: 'project_manager',
     email: 'sarah.wilson@company.com',
     skills: ['Agile', 'Scrum', 'Team Leadership'],
     projects: ['Mobile App', 'Website Redesign'],
@@ -32,7 +32,7 @@ export const mockUsers: TeamMemberType[] = [
     id: '4',
     name: 'David Chen',
     avatar: 'DC',
-    role: 'Full Stack Developer',
+    role: 'developer',
     email: 'david.chen@company.com',
     skills: ['React', 'Node.js', 'MongoDB'],
     projects: ['Customer Dashboard', 'Analytics Platform'],
@@ -41,7 +41,7 @@ export const mockUsers: TeamMemberType[] = [
     id: '5',
     name: 'Emily Brown',
     avatar: 'EB',
-    role: 'UI/UX Designer',
+    role: 'designer',
     email: 'emily.brown@company.com',
     skills: ['Figma', 'Adobe XD', 'User Research'],
     projects: ['Design System', 'Mobile App'],
@@ -50,7 +50,7 @@ export const mockUsers: TeamMemberType[] = [
     id: '6',
     name: 'Michael Lee',
     avatar: 'ML',
-    role: 'DevOps Engineer',
+    role: 'developer',
     email: 'michael.lee@company.com',
     skills: ['Docker', 'Kubernetes', 'CI/CD'],
     projects: ['Infrastructure', 'Deployment Automation'],

@@ -1,47 +1,44 @@
 import React, { useState } from 'react';
-import { FiCalendar, FiUser, FiAlignLeft } from 'react-icons/fi';
-import { Client, TeamMember } from '../../types';
+import { FiCalendar, FiUser, FiUsers } from 'react-icons/fi';
+import { TeamMemberType } from '../../types';
 
-export interface ProjectFormData {
+export interface ProjectSettingsData {
   name: string;
   description: string;
   startDate: string;
   endDate: string;
   client: string;
   status: 'active' | 'completed' | 'on_hold';
+  team: string[];
 }
 
-interface ProjectFormProps {
-  initialData?: Partial<ProjectFormData>;
-  onSubmit: (data: ProjectFormData) => void;
+interface ProjectSettingsProps {
+  initialData: ProjectSettingsData;
+  onSubmit: (data: ProjectSettingsData) => void;
   onCancel: () => void;
   isSubmitting?: boolean;
-  clients?: Client[];
-  team?: TeamMember[];
+  team?: TeamMemberType[];
 }
 
-const ProjectForm: React.FC<ProjectFormProps> = ({
-  initialData = {},
+const ProjectSettings: React.FC<ProjectSettingsProps> = ({
+  initialData,
   onSubmit,
   onCancel,
   isSubmitting = false,
-  clients = [],
   team = [],
 }) => {
-  const [formData, setFormData] = useState<ProjectFormData>({
-    name: initialData.name || '',
-    description: initialData.description || '',
-    startDate: initialData.startDate || new Date().toISOString().split('T')[0],
-    endDate: initialData.endDate || '',
-    client: initialData.client || '',
-    status: initialData.status || 'active',
-  });
+  const [formData, setFormData] = useState<ProjectSettingsData>(initialData);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleTeamChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedOptions = Array.from(e.target.selectedOptions).map(option => option.value);
+    setFormData(prev => ({ ...prev, team: selectedOptions }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -155,6 +152,32 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
         </select>
       </div>
 
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Team Members
+        </label>
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <FiUsers className="text-gray-400" />
+          </div>
+          <select
+            multiple
+            name="team"
+            value={formData.team}
+            onChange={handleTeamChange}
+            className="pl-10 w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            size={4}
+          >
+            {team.map(member => (
+              <option key={member.id} value={member.id}>
+                {member.name} ({member.role})
+              </option>
+            ))}
+          </select>
+        </div>
+        <p className="text-xs text-gray-500 mt-1">Hold Ctrl/Cmd to select multiple members</p>
+      </div>
+
       <div className="flex justify-end gap-3 pt-4">
         <button
           type="button"
@@ -169,11 +192,11 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
           className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50"
           disabled={isSubmitting}
         >
-          {isSubmitting ? 'Creating...' : 'Create Project'}
+          {isSubmitting ? 'Saving...' : 'Save Changes'}
         </button>
       </div>
     </form>
   );
 };
 
-export default ProjectForm; 
+export default ProjectSettings; 

@@ -15,13 +15,14 @@ import Security from '../pages/admin/Security';
 import System from '../pages/admin/System';
 import Settings from '../pages/admin/Settings';
 import Clients from '../pages/admin/Clients';
+import AdminTeamPage from '../pages/admin/TeamPage';
 
 // Developer Pages
 import DeveloperPage from '../pages/developer/DeveloperPage';
 import ProfilePage from '../pages/developer/ProfilePage';
 import TimeTrackingPage from '../pages/developer/TimeTrackingPage';
-import TeamPage from '../pages/developer/TeamPage';
-import ProjectsPage from '../pages/developer/ProjectsPage';
+import DeveloperTeamPage from '../pages/developer/TeamPage';
+import DeveloperProjectsPage from '../pages/developer/ProjectsPage';
 
 // Project Manager Pages
 import ManagerDashboard from '../pages/manager/Dashboard';
@@ -29,6 +30,8 @@ import TaskBoard from '../pages/manager/TaskBoard';
 import Calendar from '../pages/manager/Calendar';
 import Timesheet from '../pages/manager/Timesheet';
 import ManagerReports from '../pages/manager/Reports';
+import ManagerProjectsPage from '../pages/manager/ProjectsPage';
+import ManagerTeamPage from '../pages/manager/TeamPage';
 
 // QA Engineer Pages
 import QADashboard from '../pages/qa/Dashboard';
@@ -79,8 +82,9 @@ const RouteConfig: React.FC = () => {
         <Route path="dashboard" element={<AdminDashboard />} />
         <Route path="users" element={<Users />} />
         <Route path="clients" element={<Clients />} />
-        <Route path="projects" element={<ProjectsPage />} />
+        <Route path="projects" element={<ManagerProjectsPage />} />
         <Route path="tasks" element={<TaskBoard />} />
+        <Route path="team" element={<AdminTeamPage />} />
         <Route path="analytics" element={<ManagerReports />} />
         <Route path="security" element={<Security />} />
         <Route path="system" element={<System />} />
@@ -100,8 +104,8 @@ const RouteConfig: React.FC = () => {
         <Route index element={<Navigate to="/developer/tasks" replace />} />
         <Route path="tasks" element={<DeveloperPage />} />
         <Route path="time" element={<TimeTrackingPage />} />
-        <Route path="team" element={<TeamPage />} />
-        <Route path="projects" element={<ProjectsPage />} />
+        <Route path="team" element={<DeveloperTeamPage />} />
+        <Route path="projects" element={<DeveloperProjectsPage />} />
         <Route path="profile" element={<ProfilePage />} />
       </Route>
 
@@ -117,8 +121,8 @@ const RouteConfig: React.FC = () => {
       >
         <Route index element={<Navigate to="/manager/dashboard" replace />} />
         <Route path="dashboard" element={<ManagerDashboard />} />
-        <Route path="projects" element={<ProjectsPage />} />
-        <Route path="team" element={<TeamPage />} />
+        <Route path="projects" element={<ManagerProjectsPage />} />
+        <Route path="team" element={<ManagerTeamPage />} />
         <Route path="tasks" element={<TaskBoard />} />
         <Route path="calendar" element={<Calendar />} />
         <Route path="timesheet" element={<Timesheet />} />

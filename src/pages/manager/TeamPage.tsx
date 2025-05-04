@@ -1,15 +1,15 @@
 import React from 'react';
 import TeamPageComponent from '../../components/TeamPageComponent';
 
-const DeveloperTeamPage: React.FC = () => {
+const ManagerTeamPage: React.FC = () => {
   return (
     <TeamPageComponent
-      role="developer"
+      role="project_manager"
       canEditMembers={false}
-      canAssignTasks={false}
-      canViewSensitiveInfo={false}
+      canAssignTasks={true}
+      canViewSensitiveInfo={true}
     />
   );
 };
 
-export default DeveloperTeamPage; 
+export default ManagerTeamPage; 
