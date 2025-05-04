@@ -20,10 +20,7 @@ const QAEngineerLayout: React.FC = () => {
   const navItems = [
     { to: '/qa/dashboard', icon: FiGrid, label: 'Dashboard' },
     { to: '/qa/tests', icon: FiCheckSquare, label: 'Test Cases' },
-    { to: '/qa/bugs', icon: FiAlertOctagon, label: 'Bug Tracking' },
     { to: '/qa/reports', icon: FiFileText, label: 'Test Reports' },
-    { to: '/qa/metrics', icon: FiBarChart2, label: 'QA Metrics' },
-    { to: '/qa/issues', icon: FiAlertCircle, label: 'Issues' },
     { to: '/qa/settings', icon: FiSettings, label: 'Test Settings' },
     { to: '/qa/profile', icon: FiUser, label: 'Profile' },
   ];

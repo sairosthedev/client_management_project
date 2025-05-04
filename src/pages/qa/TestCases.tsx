@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { FiPlus, FiSearch, FiFilter, FiCheckCircle, FiXCircle } from 'react-icons/fi';
+import AddTestCaseModal from '../../components/AddTestCaseModal';
 
 interface TestCase {
   id: string;
@@ -49,10 +50,12 @@ const TestCases: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedModule, setSelectedModule] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [testCases, setTestCases] = useState<TestCase[]>(mockTestCases);
 
-  const modules = Array.from(new Set(mockTestCases.map(test => test.module)));
+  const modules = Array.from(new Set(testCases.map(test => test.module)));
 
-  const filteredTestCases = mockTestCases.filter(test => {
+  const filteredTestCases = testCases.filter(test => {
     const matchesSearch = test.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          test.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesModule = selectedModule === 'all' || test.module === selectedModule;
@@ -61,11 +64,24 @@ const TestCases: React.FC = () => {
     return matchesSearch && matchesModule && matchesStatus;
   });
 
+  const handleAddTestCase = (newTestCase: Omit<TestCase, 'id' | 'lastRun' | 'executionTime'>) => {
+    const testCase: TestCase = {
+      ...newTestCase,
+      id: (testCases.length + 1).toString(),
+      lastRun: new Date().toISOString().split('T')[0],
+      executionTime: '0.0s',
+    };
+    setTestCases([...testCases, testCase]);
+  };
+
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Test Cases</h1>
-        <button className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
+        <h1 className="text-2xl font-bold text-gray-900">Test Cases</h1>
+        <button 
+          onClick={() => setIsModalOpen(true)}
+          className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+        >
           <FiPlus className="w-5 h-5" />
           Add Test Case
         </button>
@@ -178,6 +194,12 @@ const TestCases: React.FC = () => {
           </tbody>
         </table>
       </div>
+
+      <AddTestCaseModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSubmit={handleAddTestCase}
+      />
     </div>
   );
 };
