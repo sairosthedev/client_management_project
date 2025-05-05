@@ -1,11 +1,11 @@
-export type UserRole = 'developer' | 'designer' | 'project_manager' | 'admin';
+export type UserRole = 'Frontend Developer' | 'Backend Developer' | 'Full Stack Developer' | 'Designer' | 'Project Manager';
 
 export interface TeamMemberType {
   id: string;
   name: string;
   avatar: string;
-  role?: UserRole;
-  email?: string;
+  role: UserRole;
+  email: string;
   skills: string[];
   projects: string[];
 }
@@ -19,23 +19,6 @@ export interface FileAttachmentType {
   previewUrl?: string;
   uploadedBy: string;
   uploadedAt: Date;
-}
-
-export interface ActivityItem {
-  id: string;
-  type: 'comment' | 'attachment' | 'status_change' | 'other';
-  content: string;
-  user: {
-    id: string;
-    name: string;
-    email: string;
-  };
-  timestamp: Date;
-  metadata?: {
-    attachments?: FileAttachmentType[];
-    originalContent?: string;
-    mentions?: string[];
-  };
 }
 
 export interface Client {
