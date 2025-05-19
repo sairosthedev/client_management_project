@@ -26,7 +26,7 @@ export const UserContextProvider: React.FC<UserContextProviderProps> = ({ childr
     role: 'admin', // Set to admin to have highest level access
     email: 'admin@example.com',
     name: 'Admin User',
-    id: '1',
+    id: '64f5ce8b3adb23456a789abc', // Valid MongoDB ObjectId format
     permissions: {
       ...DEFAULT_ROLE_PERMISSIONS.admin,
       ...DEFAULT_ROLE_PERMISSIONS.project_manager,

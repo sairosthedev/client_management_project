@@ -7,7 +7,7 @@ export const getDashboardPath = (role: UserRole): string => {
     case 'project_manager':
       return '/manager/dashboard';
     case 'client':
-      return '/client/projects';
+      return '/client/dashboard';
     case 'qa_engineer':
       return '/qa/dashboard';
     case 'designer':

@@ -49,7 +49,9 @@ const DeveloperLayout: React.FC = () => {
 
       {/* Main Content */}
       <div className="flex-1 overflow-auto">
-        <Outlet />
+        <main className="h-full">
+          <Outlet />
+        </main>
       </div>
     </div>
   );

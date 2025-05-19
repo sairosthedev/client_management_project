@@ -9,7 +9,7 @@ import { formatDate } from '../../utils/date';
 interface TaskCardProps {
   task: Task;
   isTracking: boolean;
-  onStartTracking: (taskId: string) => void;
+  onStartTracking: () => void;
   onStopTracking: () => void;
 }
 
@@ -26,22 +26,24 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   onStartTracking,
   onStopTracking,
 }) => {
-  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+  const { attributes, listeners, setNodeRef, transform } = useDraggable({
     id: task.id,
   });
 
-  const style = {
+  const style = transform ? {
     transform: CSS.Translate.toString(transform),
-  };
+  } : undefined;
+
+  const isCurrentlyTracking = isTracking === task.id;
 
   return (
     <div
       ref={setNodeRef}
+      style={style}
       {...attributes}
       {...listeners}
-      style={style}
       className={`bg-white rounded-lg p-4 shadow-sm border border-gray-200 cursor-move ${
-        isDragging ? 'opacity-50' : ''
+        isCurrentlyTracking ? 'opacity-50' : ''
       }`}
     >
       <div className="flex items-start justify-between gap-4">
@@ -71,22 +73,25 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         </div>
 
         <button
-          onClick={() => {
-            if (isTracking) {
-              onStopTracking();
-            } else {
-              onStartTracking(task.id);
-            }
-          }}
+          onClick={isCurrentlyTracking ? onStopTracking : onStartTracking}
           className={`px-3 py-1 text-sm rounded-lg transition-colors ${
-            isTracking && task.id === task.id
+            isCurrentlyTracking
               ? 'bg-red-100 text-red-700 hover:bg-red-200'
               : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
           }`}
         >
-          {isTracking && task.id === task.id ? 'Stop' : 'Start'}
+          {isCurrentlyTracking ? 'Stop' : 'Start'}
         </button>
       </div>
+
+      {task.assignee && (
+        <div className="mt-3 flex items-center">
+          <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-xs font-medium">
+            {task.assignee.avatar}
+          </div>
+          <span className="ml-2 text-sm text-gray-600">{task.assignee.name}</span>
+        </div>
+      )}
     </div>
   );
 };

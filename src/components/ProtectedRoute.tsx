@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { UserRole } from '../types';
 
 interface ProtectedRouteProps {
-  element: React.ReactElement;
+  element: React.ReactNode;
   allowedRoles?: UserRole[];
   requireAuth?: boolean;
 }
@@ -39,7 +39,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
       switch (role) {
         case 'admin': return '/admin/dashboard';
         case 'project_manager': return '/manager/dashboard';
-        case 'client': return '/client/projects';
+        case 'client': return '/client/dashboard';
         case 'qa_engineer': return '/qa/dashboard';
         case 'designer': return '/designer/tasks';
         default: return '/developer/tasks';
@@ -47,33 +47,23 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     };
 
     if (auth.user) {
-      return <Navigate to={getDashboardPath(auth.user.role)} replace />;
+      return <Navigate to={getDashboardPath(auth.user.role as UserRole)} replace />;
     }
     return <Navigate to="/debug" replace />;
   }
 
-  // For role-based authorization
-  if (auth.isAuthenticated && allowedRoles.length > 0 && auth.user) {
-    // If user doesn't have the required role
-    if (!allowedRoles.includes(auth.user.role)) {
-      // Redirect to appropriate dashboard
-      const getDashboardPath = (role: UserRole) => {
-        switch (role) {
-          case 'admin': return '/admin/dashboard';
-          case 'project_manager': return '/manager/dashboard';
-          case 'client': return '/client/projects';
-          case 'qa_engineer': return '/qa/dashboard';
-          case 'designer': return '/designer/tasks';
-          default: return '/developer/tasks';
-        }
-      };
-      
-      return <Navigate to={getDashboardPath(auth.user.role)} replace />;
+  // Check if user has required role
+  if (allowedRoles.length > 0 && auth.user) {
+    if (!allowedRoles.includes(auth.user.role as UserRole)) {
+      // Redirect to unauthorized page with a message about the required role
+      return <Navigate to="/unauthorized" state={{ 
+        message: `This page requires one of the following roles: ${allowedRoles.join(', ')}`,
+        currentRole: auth.user.role
+      }} replace />;
     }
   }
 
-  // Everything OK, render the protected component
-  return element;
+  return <>{element}</>;
 };
 
 export default ProtectedRoute; 

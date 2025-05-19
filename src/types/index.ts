@@ -1,10 +1,12 @@
-export type UserRole = 'Frontend Developer' | 'Backend Developer' | 'Full Stack Developer' | 'Designer' | 'Project Manager';
+export type JobTitle = 'Frontend Developer' | 'Backend Developer' | 'Full Stack Developer' | 'Designer' | 'Project Manager';
+
+export type UserRole = 'developer' | 'project_manager' | 'client' | 'admin';
 
 export interface TeamMemberType {
   id: string;
   name: string;
   avatar: string;
-  role: UserRole;
+  role: JobTitle;
   email: string;
   skills: string[];
   projects: string[];

@@ -1,5 +1,5 @@
-import React from 'react';
-import { Link, Outlet, useLocation } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
   FiGrid,
   FiFolder,
@@ -15,7 +15,40 @@ import { useAuth } from '../contexts/AuthContext';
 
 const ClientLayout: React.FC = () => {
   const location = useLocation();
-  const { logout } = useAuth();
+  const navigate = useNavigate();
+  const { logout, isAuthenticated, isLoading, user } = useAuth();
+
+  useEffect(() => {
+    // Redirect to login if not authenticated and not loading
+    if (!isAuthenticated && !isLoading) {
+      navigate('/auth', { replace: true });
+    }
+
+    // Redirect to unauthorized if not a client
+    if (user && user.role !== 'client') {
+      navigate('/unauthorized', { 
+        state: { 
+          message: 'This page requires the client role',
+          currentRole: user.role
+        },
+        replace: true 
+      });
+    }
+  }, [isAuthenticated, isLoading, navigate, user]);
+
+  // Show loading state while checking authentication
+  if (isLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-gray-100">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
+      </div>
+    );
+  }
+
+  // Prevent layout rendering if not authenticated or not a client
+  if (!isAuthenticated || (user && user.role !== 'client')) {
+    return null;
+  }
 
   const navItems = [
     { to: '/client/dashboard', icon: FiGrid, label: 'Dashboard' },
@@ -24,6 +57,10 @@ const ClientLayout: React.FC = () => {
     { to: '/client/messages', icon: FiMessageSquare, label: 'Messages' },
     { to: '/client/profile', icon: FiUser, label: 'Profile' },
   ];
+
+  const handleLogout = () => {
+    logout();
+  };
 
   return (
     <div className="flex h-screen bg-gray-100">
@@ -48,7 +85,7 @@ const ClientLayout: React.FC = () => {
         </nav>
         <div className="border-t border-gray-200 p-4">
           <button 
-            onClick={logout} 
+            onClick={handleLogout} 
             className="flex items-center gap-3 w-full px-4 py-2 text-red-600 hover:bg-red-50 rounded transition-colors"
           >
             <FiLogOut className="w-5 h-5" />

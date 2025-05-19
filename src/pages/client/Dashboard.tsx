@@ -1,41 +1,56 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { FiActivity, FiCheckCircle, FiClock, FiDollarSign, FiFileText, FiMessageSquare } from 'react-icons/fi';
-
-interface ProjectUpdate {
-  id: string;
-  project: string;
-  message: string;
-  timestamp: string;
-  type: 'milestone' | 'update' | 'document';
-}
-
-const mockUpdates: ProjectUpdate[] = [
-  {
-    id: '1',
-    project: 'E-commerce Platform',
-    message: 'Frontend development completed',
-    timestamp: '2 hours ago',
-    type: 'milestone',
-  },
-  {
-    id: '2',
-    project: 'Mobile App Development',
-    message: 'New design documents uploaded',
-    timestamp: '4 hours ago',
-    type: 'document',
-  },
-  {
-    id: '3',
-    project: 'Website Redesign',
-    message: 'Weekly progress report available',
-    timestamp: '1 day ago',
-    type: 'update',
-  },
-];
+import { clientService, ProjectUpdate, ClientDashboardData } from '../../services/clientService';
 
 const ClientDashboard: React.FC = () => {
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [dashboardData, setDashboardData] = useState<ClientDashboardData | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setIsLoading(true);
+        const data = await clientService.getDashboardData();
+        setDashboardData(data);
+        setError(null);
+      } catch (err) {
+        console.error('Error fetching dashboard data:', err);
+        setError('Failed to load dashboard data. Please try again later.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="p-6 flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
+      </div>
+    );
+  }
+
+  if (!dashboardData) {
+    return (
+      <div className="p-6">
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+          {error || 'No dashboard data available.'}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-6">
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+          {error}
+        </div>
+      )}
+      
       <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -47,7 +62,7 @@ const ClientDashboard: React.FC = () => {
             <span className="text-sm text-gray-500">Active Projects</span>
           </div>
           <div className="flex items-baseline">
-            <span className="text-2xl font-bold">3</span>
+            <span className="text-2xl font-bold">{dashboardData.activeProjects}</span>
             <span className="ml-2 text-sm text-green-600">+1 this month</span>
           </div>
         </div>
@@ -60,7 +75,7 @@ const ClientDashboard: React.FC = () => {
             <span className="text-sm text-gray-500">Completed Milestones</span>
           </div>
           <div className="flex items-baseline">
-            <span className="text-2xl font-bold">12</span>
+            <span className="text-2xl font-bold">{dashboardData.completedMilestones}</span>
             <span className="ml-2 text-sm text-blue-600">85% success rate</span>
           </div>
         </div>
@@ -73,7 +88,7 @@ const ClientDashboard: React.FC = () => {
             <span className="text-sm text-gray-500">Total Budget</span>
           </div>
           <div className="flex items-baseline">
-            <span className="text-2xl font-bold">$45,000</span>
+            <span className="text-2xl font-bold">${dashboardData.totalBudget.toLocaleString()}</span>
             <span className="ml-2 text-sm text-purple-600">On track</span>
           </div>
         </div>
@@ -86,7 +101,7 @@ const ClientDashboard: React.FC = () => {
             <span className="text-sm text-gray-500">Time to Deadline</span>
           </div>
           <div className="flex items-baseline">
-            <span className="text-2xl font-bold">45 days</span>
+            <span className="text-2xl font-bold">{dashboardData.nextDeadline} days</span>
             <span className="ml-2 text-sm text-yellow-600">Next milestone</span>
           </div>
         </div>
@@ -96,67 +111,80 @@ const ClientDashboard: React.FC = () => {
         <div className="lg:col-span-2">
           <div className="bg-white rounded-lg shadow-sm p-6">
             <h2 className="text-lg font-semibold mb-4">Recent Updates</h2>
-            <div className="space-y-4">
-              {mockUpdates.map(update => (
-                <div key={update.id} className="flex items-start">
-                  <div className={`p-2 rounded-lg mr-4 ${
-                    update.type === 'milestone'
-                      ? 'bg-green-100'
-                      : update.type === 'document'
-                      ? 'bg-blue-100'
-                      : 'bg-yellow-100'
-                  }`}>
-                    {update.type === 'milestone' ? (
-                      <FiCheckCircle className="w-5 h-5 text-green-600" />
-                    ) : update.type === 'document' ? (
-                      <FiFileText className="w-5 h-5 text-blue-600" />
-                    ) : (
-                      <FiMessageSquare className="w-5 h-5 text-yellow-600" />
-                    )}
+            {dashboardData.projectUpdates && dashboardData.projectUpdates.length > 0 ? (
+              <div className="space-y-4">
+                {dashboardData.projectUpdates.map(update => (
+                  <div key={update.id} className="flex items-start">
+                    <div className={`p-2 rounded-lg mr-4 ${
+                      update.type === 'milestone'
+                        ? 'bg-green-100'
+                        : update.type === 'document'
+                        ? 'bg-blue-100'
+                        : 'bg-yellow-100'
+                    }`}>
+                      {update.type === 'milestone' ? (
+                        <FiCheckCircle className="w-5 h-5 text-green-600" />
+                      ) : update.type === 'document' ? (
+                        <FiFileText className="w-5 h-5 text-blue-600" />
+                      ) : (
+                        <FiMessageSquare className="w-5 h-5 text-yellow-600" />
+                      )}
+                    </div>
+                    <div>
+                      <p className="font-medium">{update.project}</p>
+                      <p className="text-gray-600">{update.message}</p>
+                      <p className="text-sm text-gray-500 mt-1">{update.timestamp}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-medium">{update.project}</p>
-                    <p className="text-gray-600">{update.message}</p>
-                    <p className="text-sm text-gray-500 mt-1">{update.timestamp}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-500">No recent updates available.</p>
+            )}
           </div>
         </div>
 
         <div>
           <div className="bg-white rounded-lg shadow-sm p-6">
             <h2 className="text-lg font-semibold mb-4">Project Health</h2>
-            <div className="space-y-4">
-              <div>
-                <div className="flex justify-between mb-2">
-                  <span className="text-sm text-gray-600">E-commerce Platform</span>
-                  <span className="text-sm font-medium text-green-600">Healthy</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div className="bg-green-600 h-2 rounded-full" style={{ width: '85%' }} />
-                </div>
+            {dashboardData.projectHealth && dashboardData.projectHealth.length > 0 ? (
+              <div className="space-y-4">
+                {dashboardData.projectHealth.map(project => (
+                  <div key={project.id}>
+                    <div className="flex justify-between mb-2">
+                      <span className="text-sm text-gray-600">{project.name}</span>
+                      <span className={`text-sm font-medium ${
+                        project.status === 'healthy'
+                          ? 'text-green-600'
+                          : project.status === 'at_risk'
+                          ? 'text-yellow-600'
+                          : 'text-red-600'
+                      }`}>
+                        {project.status === 'healthy'
+                          ? 'Healthy'
+                          : project.status === 'at_risk'
+                          ? 'At Risk'
+                          : 'Critical'}
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div 
+                        className={`h-2 rounded-full ${
+                          project.status === 'healthy'
+                            ? 'bg-green-600'
+                            : project.status === 'at_risk'
+                            ? 'bg-yellow-600'
+                            : 'bg-red-600'
+                        }`}
+                        style={{ width: `${project.progress}%` }} 
+                      />
+                    </div>
+                  </div>
+                ))}
               </div>
-              <div>
-                <div className="flex justify-between mb-2">
-                  <span className="text-sm text-gray-600">Mobile App Development</span>
-                  <span className="text-sm font-medium text-yellow-600">At Risk</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div className="bg-yellow-600 h-2 rounded-full" style={{ width: '45%' }} />
-                </div>
-              </div>
-              <div>
-                <div className="flex justify-between mb-2">
-                  <span className="text-sm text-gray-600">Website Redesign</span>
-                  <span className="text-sm font-medium text-green-600">Healthy</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div className="bg-green-600 h-2 rounded-full" style={{ width: '90%' }} />
-                </div>
-              </div>
-            </div>
+            ) : (
+              <p className="text-gray-500">No project health data available.</p>
+            )}
           </div>
         </div>
       </div>

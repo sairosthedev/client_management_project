@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Task } from '../types';
+import { Task } from '../types/task';
 import { DeveloperStats } from '../types/developer';
 
 export const useTaskStats = (tasks: Task[]): DeveloperStats => {

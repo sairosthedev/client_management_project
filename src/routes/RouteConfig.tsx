@@ -1,5 +1,6 @@
 import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, Link, useLocation } from 'react-router-dom';
+import type { UserRole } from '../types';
 
 // Layout Components
 import AdminLayout from '../layouts/AdminLayout';
@@ -56,6 +57,8 @@ import NotFoundPage from '../pages/NotFoundPage';
 import DebugPage from '../components/DebugPage';
 
 const RouteConfig: React.FC = () => {
+  const location = useLocation();
+
   return (
     <Routes>
       {/* ===== PUBLIC ROUTES ===== */}
@@ -170,6 +173,30 @@ const RouteConfig: React.FC = () => {
       {/* ===== ERROR HANDLING ROUTES ===== */}
       {/* Not found page */}
       <Route path="/not-found" element={<NotFoundPage />} />
+
+      {/* Unauthorized page */}
+      <Route path="/unauthorized" element={
+        <div className="min-h-screen flex items-center justify-center bg-gray-100">
+          <div className="max-w-md w-full p-8 bg-white rounded-lg shadow-lg text-center">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h1>
+            <p className="text-gray-600 mb-2">You don't have permission to access this page.</p>
+            {location.state?.message && (
+              <p className="text-sm text-gray-500 mb-6">{location.state.message}</p>
+            )}
+            {location.state?.currentRole && (
+              <p className="text-sm text-gray-500 mb-6">Your current role is: {location.state.currentRole}</p>
+            )}
+            <div className="space-y-4">
+              <Link to="/" className="block w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors">
+                Back to Home
+              </Link>
+              <button onClick={() => window.history.back()} className="block w-full px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors">
+                Go back to previous page
+              </button>
+            </div>
+          </div>
+        </div>
+      } />
 
       {/* Catch all route - redirect to 404 */}
       <Route

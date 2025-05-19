@@ -45,7 +45,7 @@ export const TaskGroup: React.FC<TaskGroupProps> = ({
             key={task.id}
             task={task}
             isTracking={isTracking}
-            onStartTracking={onStartTracking}
+            onStartTracking={() => onStartTracking(task.id)}
             onStopTracking={onStopTracking}
           />
         ))}

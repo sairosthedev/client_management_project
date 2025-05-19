@@ -16,7 +16,7 @@ const AuthPage: React.FC = () => {
 
   // Redirect after successful login/register
   useEffect(() => {
-    if (authSuccess && isAuthenticated && user) {
+    if (authSuccess && user) {
       const from = (location.state as any)?.from?.pathname || '/';
       
       if (from !== '/') {
@@ -25,7 +25,7 @@ const AuthPage: React.FC = () => {
         navigate(getDashboardPath(user.role as UserRole), { replace: true });
       }
     }
-  }, [authSuccess, isAuthenticated, user, navigate, location]);
+  }, [authSuccess, user, navigate, location]);
 
   const handleSubmit = async (data: {
     email: string;
@@ -42,7 +42,13 @@ const AuthPage: React.FC = () => {
           alert('Please agree to the terms and conditions');
           return;
         }
-        await register(data.name!, data.email, data.password, data.role!);
+        
+        if (!data.name || !data.role) {
+          alert('Name and role are required for registration');
+          return;
+        }
+        
+        await register(data.name, data.email, data.password, data.role);
       }
       setAuthSuccess(true);
     } catch (err) {

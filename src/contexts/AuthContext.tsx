@@ -1,11 +1,16 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { authService } from '../services/api';
+import { UserRole } from '../types';
+import { getDashboardPath } from '../utils/dashboardPaths';
+import { useNavigate } from 'react-router-dom';
 
 interface User {
   id: string;
   email: string;
   name: string;
-  role: string;
+  role: UserRole;
+  company?: string;
+  contactNumber?: string;
 }
 
 interface AuthContextType {
@@ -15,33 +20,75 @@ interface AuthContextType {
   isLoading: boolean;
   error: string | null;
   login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string, role: string) => Promise<void>;
+  register: (
+    name: string, 
+    email: string, 
+    password: string, 
+    role: UserRole,
+    clientData?: { company: string; contactNumber: string }
+  ) => Promise<void>;
   logout: () => void;
+  refreshSession: () => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [user, setUser] = useState<User | null>(() => {
+    const savedUser = localStorage.getItem('user');
+    return savedUser ? JSON.parse(savedUser) : null;
+  });
+  const [token, setToken] = useState<string | null>(() => localStorage.getItem('token'));
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
+  // Check authentication status on mount and restore session
   useEffect(() => {
-    const storedToken = localStorage.getItem('token');
-    if (storedToken) {
-      setToken(storedToken);
-      loadUser();
-    }
+    const initAuth = async () => {
+      try {
+        if (token) {
+          // Load user data if token exists
+          await loadUser();
+        }
+      } catch (err) {
+        console.error('Error initializing auth:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    initAuth();
   }, []);
 
   const loadUser = async () => {
     try {
       const userData = await authService.getCurrentUser();
       setUser(userData);
+      // Update stored user data
+      localStorage.setItem('user', JSON.stringify(userData));
+      return userData;
     } catch (err) {
       console.error('Error loading user:', err);
+      // Don't clear token on failed load - it might be a temporary network issue
+      // Only clear on explicit logout or if refreshSession is called and fails
+      return null;
+    }
+  };
+
+  const refreshSession = async (): Promise<boolean> => {
+    try {
+      setIsLoading(true);
+      // Try to fetch current user to validate session
+      const userData = await loadUser();
+      setIsLoading(false);
+      return !!userData;
+    } catch (err) {
+      console.error('Session refresh failed:', err);
+      // Automatic logout on failed refresh
       logout();
+      setIsLoading(false);
+      return false;
     }
   };
 
@@ -53,6 +100,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setToken(response.token);
       setUser(response.user);
       localStorage.setItem('token', response.token);
+      localStorage.setItem('user', JSON.stringify(response.user));
+      
+      // Navigate to the appropriate dashboard
+      if (response.user) {
+        navigate(getDashboardPath(response.user.role as UserRole), { replace: true });
+      }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Login failed');
       throw err;
@@ -61,7 +114,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const register = async (name: string, email: string, password: string, role: string) => {
+  const register = async (
+    name: string, 
+    email: string, 
+    password: string, 
+    role: UserRole,
+    clientData?: { company: string; contactNumber: string }
+  ) => {
     setIsLoading(true);
     setError(null);
     try {
@@ -70,11 +129,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         email,
         password,
         role,
-        agreedToTerms: true
+        agreedToTerms: true,
+        ...(role === 'client' && clientData ? clientData : {})
       });
       setToken(response.token);
       setUser(response.user);
       localStorage.setItem('token', response.token);
+      localStorage.setItem('user', JSON.stringify(response.user));
+      
+      // Navigate to the appropriate dashboard
+      if (response.user) {
+        navigate(getDashboardPath(response.user.role as UserRole), { replace: true });
+      }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Registration failed');
       throw err;
@@ -87,6 +153,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(null);
     setToken(null);
     localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    // If we're in a client session, also remove clientId
+    if (user?.role === 'client') {
+      localStorage.removeItem('clientId');
+    }
+    navigate('/auth');
   };
 
   return (
@@ -94,12 +166,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       value={{
         user,
         token,
-        isAuthenticated: !!user,
+        isAuthenticated: !!user && !!token,
         isLoading,
         error,
         login,
         register,
         logout,
+        refreshSession,
       }}
     >
       {children}

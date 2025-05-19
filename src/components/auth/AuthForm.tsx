@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Eye, EyeOff, Mail, User, Lock, ArrowRight } from 'lucide-react';
+import { Eye, EyeOff, Mail, User, Lock, ArrowRight, Building, Phone } from 'lucide-react';
 import { UserRole } from '../../types';
 
 interface AuthFormProps {
@@ -10,6 +10,8 @@ interface AuthFormProps {
     name?: string;
     role?: UserRole;
     agreedToTerms?: boolean;
+    company?: string;
+    contactNumber?: string;
   }) => void;
   isLoading: boolean;
   error?: string | null;
@@ -26,10 +28,14 @@ export const AuthForm: React.FC<AuthFormProps> = ({
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [role, setRole] = useState<UserRole>('developer');
+  const [company, setCompany] = useState('');
+  const [contactNumber, setContactNumber] = useState('');
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [emailFocused, setEmailFocused] = useState(false);
   const [passwordFocused, setPasswordFocused] = useState(false);
   const [nameFocused, setNameFocused] = useState(false);
+  const [companyFocused, setCompanyFocused] = useState(false);
+  const [contactFocused, setContactFocused] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,10 +45,26 @@ export const AuthForm: React.FC<AuthFormProps> = ({
       return;
     }
 
+    if (!isLogin && role === 'client') {
+      if (!company) {
+        alert('Company name is required for client registration');
+        return;
+      }
+      if (!contactNumber) {
+        alert('Contact number is required for client registration');
+        return;
+      }
+    }
+
     onSubmit({
       email,
       password,
-      ...(isLogin ? {} : { name, role, agreedToTerms })
+      ...(isLogin ? {} : { 
+        name, 
+        role, 
+        agreedToTerms,
+        ...(role === 'client' ? { company, contactNumber } : {})
+      })
     });
   };
 
@@ -55,34 +77,98 @@ export const AuthForm: React.FC<AuthFormProps> = ({
       )}
 
       {!isLogin && (
-        <div className="relative">
-          <label 
-            htmlFor="name" 
-            className={`absolute left-4 ${
-              nameFocused || name ? 'text-xs top-2 text-[#FF6B00]' : 'text-base top-1/2 -translate-y-1/2 text-gray-500'
-            } transition-all duration-200`}
-          >
-            Full Name
-          </label>
+        <>
           <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-              <User className={`h-5 w-5 ${nameFocused || name ? 'text-[#FF6B00]' : 'text-gray-400'}`} />
+            <label 
+              htmlFor="name" 
+              className={`absolute left-4 ${
+                nameFocused || name ? 'text-xs top-2 text-[#FF6B00]' : 'text-base top-1/2 -translate-y-1/2 text-gray-500'
+              } transition-all duration-200`}
+            >
+              Full Name
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <User className={`h-5 w-5 ${nameFocused || name ? 'text-[#FF6B00]' : 'text-gray-400'}`} />
+              </div>
+              <input
+                id="name"
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className={`block w-full rounded-lg border ${
+                  nameFocused ? 'border-[#FF6B00]' : 'border-gray-300'
+                } pl-11 pt-6 pb-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#FF6B00] bg-white`}
+                onFocus={() => setNameFocused(true)}
+                onBlur={() => setNameFocused(false)}
+                required={!isLogin}
+                placeholder="John Doe"
+              />
             </div>
-            <input
-              id="name"
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className={`block w-full rounded-lg border ${
-                nameFocused ? 'border-[#FF6B00]' : 'border-gray-300'
-              } pl-11 pt-6 pb-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#FF6B00] bg-white`}
-              onFocus={() => setNameFocused(true)}
-              onBlur={() => setNameFocused(false)}
-              required={!isLogin}
-              placeholder="John Doe"
-            />
           </div>
-        </div>
+
+          {role === 'client' && (
+            <>
+              <div className="relative">
+                <label 
+                  htmlFor="company" 
+                  className={`absolute left-4 ${
+                    companyFocused || company ? 'text-xs top-2 text-[#FF6B00]' : 'text-base top-1/2 -translate-y-1/2 text-gray-500'
+                  } transition-all duration-200`}
+                >
+                  Company Name
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <Building className={`h-5 w-5 ${companyFocused || company ? 'text-[#FF6B00]' : 'text-gray-400'}`} />
+                  </div>
+                  <input
+                    id="company"
+                    type="text"
+                    value={company}
+                    onChange={(e) => setCompany(e.target.value)}
+                    className={`block w-full rounded-lg border ${
+                      companyFocused ? 'border-[#FF6B00]' : 'border-gray-300'
+                    } pl-11 pt-6 pb-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#FF6B00] bg-white`}
+                    onFocus={() => setCompanyFocused(true)}
+                    onBlur={() => setCompanyFocused(false)}
+                    required={role === 'client'}
+                    placeholder="Your Company"
+                  />
+                </div>
+              </div>
+
+              <div className="relative">
+                <label 
+                  htmlFor="contactNumber" 
+                  className={`absolute left-4 ${
+                    contactFocused || contactNumber ? 'text-xs top-2 text-[#FF6B00]' : 'text-base top-1/2 -translate-y-1/2 text-gray-500'
+                  } transition-all duration-200`}
+                >
+                  Contact Number
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <Phone className={`h-5 w-5 ${contactFocused || contactNumber ? 'text-[#FF6B00]' : 'text-gray-400'}`} />
+                  </div>
+                  <input
+                    id="contactNumber"
+                    type="tel"
+                    value={contactNumber}
+                    onChange={(e) => setContactNumber(e.target.value)}
+                    className={`block w-full rounded-lg border ${
+                      contactFocused ? 'border-[#FF6B00]' : 'border-gray-300'
+                    } pl-11 pt-6 pb-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#FF6B00] bg-white`}
+                    onFocus={() => setContactFocused(true)}
+                    onBlur={() => setContactFocused(false)}
+                    required={role === 'client'}
+                    placeholder="+1 (555) 000-0000"
+                  />
+                </div>
+              </div>
+            </>
+          )}
+        </>
       )}
 
       <div className="relative">
