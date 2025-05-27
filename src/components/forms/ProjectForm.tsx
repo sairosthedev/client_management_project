@@ -1,23 +1,16 @@
 import React, { useState } from 'react';
 import { FiCalendar, FiUser, FiAlignLeft } from 'react-icons/fi';
-import { Client, TeamMember } from '../../types';
-
-export interface ProjectFormData {
-  name: string;
-  description: string;
-  startDate: string;
-  endDate: string;
-  client: string;
-  status: 'active' | 'completed' | 'on_hold';
-}
+import { Client } from '../../types';
+import { CreateProjectData } from '../../services/projectService';
+import { User } from '../../services/userService';
 
 interface ProjectFormProps {
-  initialData?: Partial<ProjectFormData>;
-  onSubmit: (data: ProjectFormData) => void;
+  initialData?: Partial<CreateProjectData>;
+  onSubmit: (data: CreateProjectData) => void;
   onCancel: () => void;
   isSubmitting?: boolean;
   clients?: Client[];
-  team?: TeamMember[];
+  team?: User[];
 }
 
 const ProjectForm: React.FC<ProjectFormProps> = ({
@@ -28,20 +21,39 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
   clients = [],
   team = [],
 }) => {
-  const [formData, setFormData] = useState<ProjectFormData>({
+  const [formData, setFormData] = useState<CreateProjectData>({
     name: initialData.name || '',
     description: initialData.description || '',
     startDate: initialData.startDate || new Date().toISOString().split('T')[0],
     endDate: initialData.endDate || '',
     client: initialData.client || '',
-    status: initialData.status || 'active',
+    budget: initialData.budget || { amount: 0, currency: 'USD' },
+    priority: initialData.priority || 'medium',
+    team: initialData.team || [],
   });
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    
+    if (name === 'budget') {
+      setFormData(prev => ({
+        ...prev,
+        budget: {
+          ...prev.budget,
+          amount: parseFloat(value) || 0
+        }
+      }));
+    } else if (name === 'team') {
+      const selectedOptions = Array.from((e.target as HTMLSelectElement).selectedOptions).map(option => option.value);
+      setFormData(prev => ({
+        ...prev,
+        team: selectedOptions
+      }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -127,32 +139,93 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <FiUser className="text-gray-400" />
           </div>
-          <input
-            type="text"
+          <select
             name="client"
             value={formData.client}
             onChange={handleChange}
             className="pl-10 w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
-          />
+          >
+            <option value="">Select a client</option>
+            {clients.map(client => (
+              <option key={client.id} value={client.id}>
+                {client.name} ({client.company})
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
-          Status
+          Budget
+        </label>
+        <div className="flex gap-2">
+          <input
+            type="number"
+            name="budget"
+            value={formData.budget.amount}
+            onChange={handleChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            min="0"
+            step="0.01"
+            required
+          />
+          <select
+            name="budgetCurrency"
+            value={formData.budget.currency}
+            onChange={(e) => setFormData(prev => ({
+              ...prev,
+              budget: {
+                ...prev.budget,
+                currency: e.target.value
+              }
+            }))}
+            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="USD">USD</option>
+            <option value="EUR">EUR</option>
+            <option value="GBP">GBP</option>
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Priority
         </label>
         <select
-          name="status"
-          value={formData.status}
+          name="priority"
+          value={formData.priority}
           onChange={handleChange}
           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           required
         >
-          <option value="active">Active</option>
-          <option value="completed">Completed</option>
-          <option value="on_hold">On Hold</option>
+          <option value="low">Low</option>
+          <option value="medium">Medium</option>
+          <option value="high">High</option>
         </select>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Team Members
+        </label>
+        <select
+          multiple
+          name="team"
+          value={formData.team}
+          onChange={handleChange}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          size={4}
+        >
+          {team.map(member => (
+            <option key={member._id} value={member._id}>
+              {member.name} ({member.role})
+            </option>
+          ))}
+        </select>
+        <p className="text-xs text-gray-500 mt-1">Hold Ctrl/Cmd to select multiple members</p>
       </div>
 
       <div className="flex justify-end gap-3 pt-4">

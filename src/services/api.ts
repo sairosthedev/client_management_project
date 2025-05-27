@@ -53,6 +53,20 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// Add response interceptor to handle errors
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Clear local storage and redirect to login
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.href = '/auth';
+    }
+    return Promise.reject(error);
+  }
+);
+
 // Types for registration data
 type UserRole = 'developer' | 'project_manager' | 'client' | 'qa_engineer' | 'designer' | 'admin';
 

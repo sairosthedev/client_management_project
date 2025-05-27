@@ -53,13 +53,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       } catch (err) {
         console.error('Error initializing auth:', err);
+        // Clear invalid token
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        setToken(null);
+        setUser(null);
       } finally {
         setIsLoading(false);
       }
     };
 
     initAuth();
-  }, []);
+  }, [token]);
 
   const loadUser = async () => {
     try {
@@ -70,8 +75,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return userData;
     } catch (err) {
       console.error('Error loading user:', err);
-      // Don't clear token on failed load - it might be a temporary network issue
-      // Only clear on explicit logout or if refreshSession is called and fails
+      // Clear invalid token
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      setToken(null);
+      setUser(null);
       return null;
     }
   };
