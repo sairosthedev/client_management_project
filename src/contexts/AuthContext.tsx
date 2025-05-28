@@ -5,7 +5,7 @@ import { getDashboardPath } from '../utils/dashboardPaths';
 import { useNavigate } from 'react-router-dom';
 
 interface User {
-  id: string;
+  _id: string;
   email: string;
   name: string;
   role: UserRole;

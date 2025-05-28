@@ -1,29 +1,14 @@
 import React from 'react';
 import { format } from 'date-fns';
 import { FiCalendar, FiClock, FiFlag } from 'react-icons/fi';
-
-interface Task {
-  id: string;
-  title: string;
-  description: string;
-  status: 'todo' | 'in_progress' | 'review' | 'done';
-  priority: 'low' | 'medium' | 'high';
-  assignee?: {
-    id: string;
-    name: string;
-    avatar: string;
-  };
-  dueDate: Date;
-  timeEstimate: number;
-  timeSpent: number;
-}
+import type { Task } from '../types/task';
 
 interface TaskCardProps {
   task: Task;
   onClick?: (task: Task) => void;
 }
 
-const getPriorityColor = (priority: Task['priority']) => {
+const getPriorityColor = (priority: string) => {
   switch (priority) {
     case 'high':
       return 'text-red-500';
@@ -34,6 +19,12 @@ const getPriorityColor = (priority: Task['priority']) => {
     default:
       return 'text-gray-500';
   }
+};
+
+const formatTime = (hours: number) => {
+  const wholeHours = Math.floor(hours);
+  const minutes = Math.round((hours - wholeHours) * 60);
+  return `${wholeHours}h ${minutes}m`;
 };
 
 const TaskCard: React.FC<TaskCardProps> = ({ task, onClick }) => {
@@ -52,21 +43,21 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onClick }) => {
       <div className="flex items-center justify-between text-sm text-gray-500">
         <div className="flex items-center">
           <FiCalendar className="mr-1" />
-          <span>{format(task.dueDate, 'MMM d')}</span>
+          <span>{format(new Date(task.dueDate), 'MMM d')}</span>
         </div>
         
         <div className="flex items-center">
           <FiClock className="mr-1" />
-          <span>{Math.round(task.timeSpent / 60)}h / {Math.round(task.timeEstimate / 60)}h</span>
+          <span>{formatTime(task.actualHours)} / {formatTime(task.estimatedHours)}</span>
         </div>
       </div>
 
-      {task.assignee && (
+      {task.assignedTo && (
         <div className="mt-3 flex items-center">
           <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-xs font-medium">
-            {task.assignee.avatar}
+            {task.assignedTo.charAt(0)}
           </div>
-          <span className="ml-2 text-sm text-gray-600">{task.assignee.name}</span>
+          <span className="ml-2 text-sm text-gray-600">{task.assignedTo}</span>
         </div>
       )}
     </div>

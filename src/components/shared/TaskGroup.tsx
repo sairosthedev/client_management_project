@@ -1,16 +1,13 @@
 import React from 'react';
 import { useDroppable } from '@dnd-kit/core';
-import { FiChevronDown, FiChevronUp, FiPlus } from 'react-icons/fi';
-import type { Task, TaskStatus } from '../../types/task';
+import { FiPlus } from 'react-icons/fi';
 import { TaskCard } from './TaskCard';
+import type { Task, TaskStatus } from '../../types/task';
 
 interface TaskGroupProps {
   id: TaskStatus;
   title: string;
   tasks: Task[];
-  isTracking: boolean;
-  onStartTracking: (taskId: string) => void;
-  onStopTracking: () => void;
   onQuickAdd?: (groupTitle: string) => void;
 }
 
@@ -18,9 +15,6 @@ export const TaskGroup: React.FC<TaskGroupProps> = ({
   id,
   title,
   tasks,
-  isTracking,
-  onStartTracking,
-  onStopTracking,
   onQuickAdd,
 }) => {
   const { setNodeRef, isOver } = useDroppable({
@@ -44,9 +38,9 @@ export const TaskGroup: React.FC<TaskGroupProps> = ({
           <TaskCard
             key={task._id}
             task={task}
-            isTracking={isTracking}
-            onStartTracking={() => onStartTracking(task._id)}
-            onStopTracking={onStopTracking}
+            isTracking={false}
+            onStartTracking={() => {}}
+            onStopTracking={() => {}}
           />
         ))}
       </div>
@@ -62,6 +56,4 @@ export const TaskGroup: React.FC<TaskGroupProps> = ({
       )}
     </div>
   );
-};
-
-export default React.memo(TaskGroup); 
+}; 

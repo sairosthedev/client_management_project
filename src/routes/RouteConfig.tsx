@@ -56,6 +56,9 @@ import ProtectedRoute from '../components/ProtectedRoute';
 import NotFoundPage from '../pages/NotFoundPage';
 import DebugPage from '../components/DebugPage';
 
+// Task Pages
+import TaskPage from '../pages/TaskPage';
+
 const RouteConfig: React.FC = () => {
   const location = useLocation();
 
@@ -87,6 +90,7 @@ const RouteConfig: React.FC = () => {
         <Route path="clients" element={<Clients />} />
         <Route path="projects" element={<ManagerProjectsPage />} />
         <Route path="tasks" element={<TaskBoard />} />
+        <Route path="tasks/:clientId/:projectId" element={<TaskPage />} />
         <Route path="team" element={<AdminTeamPage />} />
         <Route path="analytics" element={<ManagerReports />} />
         <Route path="security" element={<Security />} />
@@ -106,6 +110,7 @@ const RouteConfig: React.FC = () => {
       >
         <Route index element={<Navigate to="/developer/tasks" replace />} />
         <Route path="tasks" element={<DeveloperPage />} />
+        <Route path="tasks/:clientId/:projectId" element={<TaskPage />} />
         <Route path="time" element={<TimeTrackingPage />} />
         <Route path="team" element={<DeveloperTeamPage />} />
         <Route path="projects" element={<DeveloperProjectsPage />} />
@@ -127,6 +132,7 @@ const RouteConfig: React.FC = () => {
         <Route path="projects" element={<ManagerProjectsPage />} />
         <Route path="team" element={<ManagerTeamPage />} />
         <Route path="tasks" element={<TaskBoard />} />
+        <Route path="tasks/:clientId/:projectId" element={<TaskPage />} />
         <Route path="calendar" element={<Calendar />} />
         <Route path="timesheet" element={<Timesheet />} />
         <Route path="reports" element={<ManagerReports />} />
@@ -146,6 +152,7 @@ const RouteConfig: React.FC = () => {
         <Route index element={<Navigate to="/client/dashboard" replace />} />
         <Route path="dashboard" element={<ClientDashboard />} />
         <Route path="projects" element={<ClientProjects />} />
+        <Route path="tasks/:clientId/:projectId" element={<TaskPage />} />
         <Route path="documents" element={<Documents />} />
         <Route path="messages" element={<Messages />} />
         <Route path="invoices" element={<Invoices />} />

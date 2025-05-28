@@ -16,6 +16,10 @@ export const ActiveTaskTracker: React.FC<ActiveTaskTrackerProps> = ({
 }) => {
   if (!task) return null;
 
+  // Convert elapsed time from minutes to hours for display
+  const currentSessionHours = elapsedTime / 60;
+  const totalHours = (task.actualHours || 0) + currentSessionHours;
+
   return (
     <div className="mb-8 bg-blue-50 p-4 rounded-lg">
       <div className="flex items-center justify-between">
@@ -29,7 +33,7 @@ export const ActiveTaskTracker: React.FC<ActiveTaskTrackerProps> = ({
             </div>
             <div className="flex items-center gap-1">
               <FiClock className="w-4 h-4" />
-              <span>Total Time: {formatTime(task.timeSpent + elapsedTime)}</span>
+              <span>Total Time: {formatTime(totalHours * 60)}</span>
             </div>
           </div>
         </div>

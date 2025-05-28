@@ -1,6 +1,6 @@
 import type { TeamMemberType, FileAttachmentType } from './index';
 
-export type TaskStatus = 'todo' | 'in_progress' | 'review' | 'done';
+export type TaskStatus = 'pending' | 'in-progress' | 'completed';
 export type Priority = 'low' | 'medium' | 'high';
 
 export interface ActivityItem {
@@ -16,17 +16,31 @@ export interface ActivityItem {
 }
 
 export interface Task {
-  id: string;
+  _id: string;
   title: string;
   description: string;
   status: TaskStatus;
   priority: Priority;
-  assignee?: TeamMemberType;
-  dueDate: Date;
+  dueDate: Date | null;
+  assignedTo: {
+    _id: string;
+    name: string;
+    email: string;
+  } | string;
+  createdBy: string;
+  client: string;
   project: string;
-  dependencies: string[]; 
-  files: FileAttachmentType[];
+  estimatedHours: number;
+  actualHours: number;
+  dependencies: string[];
+  attachments: {
+    name: string;
+    url: string;
+    type: string;
+    uploadedBy: string;
+    uploadedAt: Date;
+  }[];
   activities: ActivityItem[];
-  timeEstimate: number;
-  timeSpent: number; 
+  createdAt: Date;
+  updatedAt: Date;
 } 

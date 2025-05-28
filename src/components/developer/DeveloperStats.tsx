@@ -6,7 +6,7 @@ import type { TeamMemberType } from '../../types/index';
 
 interface DeveloperStatsProps {
   developer: TeamMemberType;
-  stats: {
+  stats?: {
     tasksCompleted: number;
     tasksInProgress: number;
     totalTimeSpent: number;
@@ -14,7 +14,12 @@ interface DeveloperStatsProps {
   };
 }
 
-export const DeveloperStats: React.FC<DeveloperStatsProps> = ({ developer, stats }) => {
+export const DeveloperStats: React.FC<DeveloperStatsProps> = ({ developer, stats = {
+  tasksCompleted: 0,
+  tasksInProgress: 0,
+  totalTimeSpent: 0,
+  upcomingDeadlines: 0
+} }) => {
   return (
     <div className="mb-8">
       <div className="flex items-center gap-4 mb-6">

@@ -2,24 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Calendar, Clock, Tag, Users, X, MessageSquare, Paperclip, Link2, Play, Pause, Timer, Flag, CheckCircle2 } from 'lucide-react';
 import { format, differenceInSeconds } from 'date-fns';
 import NotionEditor from './NotionEditor';
-
-interface Task {
-  id: string;
-  title: string;
-  status: 'todo' | 'in_progress' | 'in_review' | 'done' | 'blocked' | 'on_hold';
-  priority: 'urgent' | 'high' | 'medium' | 'low' | 'none';
-  assignee?: string;
-  dueDate?: string;
-  tags: string[];
-  description?: string;
-  comments: Comment[];
-  attachments: Attachment[];
-  timeTracking: TimeTracking;
-  customFields: CustomField[];
-  subtasks: SubTask[];
-  watchers: string[];
-  dependencies: string[];
-}
+import type { Task } from '../types/task';
 
 interface TimeTracking {
   totalTime: number; // in seconds
@@ -134,12 +117,10 @@ const TaskDetailView: React.FC<TaskDetailViewProps> = ({ task, onClose, onUpdate
     }
   };
 
-  const formatTime = (ms: number) => {
-    const seconds = Math.floor(ms / 1000);
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const remainingSeconds = seconds % 60;
-    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+  const formatTime = (hours: number) => {
+    const wholeHours = Math.floor(hours);
+    const minutes = Math.round((hours - wholeHours) * 60);
+    return `${wholeHours}h ${minutes}m`;
   };
 
   const addSubtask = () => {
@@ -273,7 +254,34 @@ const TaskDetailView: React.FC<TaskDetailViewProps> = ({ task, onClose, onUpdate
                   {/* Description */}
                   <div>
                     <h3 className="text-sm font-medium text-gray-900 mb-2">Description</h3>
-                    <NotionEditor />
+                    {isEditing ? (
+                      <textarea
+                        value={editedTask.description}
+                        onChange={(e) => setEditedTask({ ...editedTask, description: e.target.value })}
+                        className="w-full h-32 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      />
+                    ) : (
+                      <p className="text-gray-600">{task.description}</p>
+                    )}
+                  </div>
+
+                  {/* Time Tracking */}
+                  <div className="mb-6">
+                    <h3 className="text-sm font-medium text-gray-900 mb-2">Time Tracking</h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-sm text-gray-500">Estimated Time</label>
+                        <div className="mt-1 text-lg font-medium">
+                          {formatTime(task.estimatedHours)}
+                        </div>
+                      </div>
+                      <div>
+                        <label className="text-sm text-gray-500">Time Spent</label>
+                        <div className="mt-1 text-lg font-medium">
+                          {formatTime(task.actualHours)}
+                        </div>
+                      </div>
+                    </div>
                   </div>
 
                   {/* Custom Fields */}

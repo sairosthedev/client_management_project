@@ -1,247 +1,102 @@
-import React, { useCallback } from 'react';
-import { DndContext, DragOverlay, closestCorners, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
-import type { DragStartEvent, DragEndEvent, DragOverEvent } from '@dnd-kit/core';
-import type { TeamMemberType, JobTitle } from '../../types/index';
-import type { Task, TaskStatus, Priority } from '../../types/task';
-import { mockTasks } from '../../mocks/tasks';
-import { TaskGroup } from '../../components/developer/TaskGroup';
-import { DeveloperStats } from '../../components/developer/DeveloperStats';
-import { ActiveTaskTracker } from '../../components/developer/ActiveTaskTracker';
-import { TaskBoardHeader } from '../../components/developer/TaskBoardHeader';
-import { TaskModal } from '../../components/developer/TaskModal';
-import { useTaskTracking } from '../../hooks/useTaskTracking';
-import { useTaskStats } from '../../hooks/useTaskStats';
+import React, { useState } from 'react';
+import { TaskBoard } from '../../components/shared/TaskBoard';
 import { useDeveloperTasks } from '../../hooks/useDeveloperTasks';
-
-// Mock current developer data
-const currentDeveloper: TeamMemberType = {
-  id: '1',
-  name: 'Maria Garcia',
-  avatar: 'MG',
-  role: 'Frontend Developer' as JobTitle,
-  email: 'maria.garcia@company.com',
-  skills: ['React', 'TypeScript', 'CSS'],
-  projects: ['Client Management', 'Dashboard'],
-};
+import { useAuth } from '../../contexts/AuthContext';
+import { TaskBoardHeader } from '../../components/developer/TaskBoardHeader';
+import { TaskStats } from '../../components/developer/TaskStats';
+import type { Task } from '../../types/task';
 
 const DeveloperPage: React.FC = () => {
+  const { user } = useAuth();
   const {
     tasks,
-    taskGroups,
-    searchTerm,
-    statusFilter,
-    projectFilter,
-    sortField,
-    sortDirection,
-    setSearchTerm,
-    setStatusFilter,
-    setProjectFilter,
-    setSortField,
-    setSortDirection,
+    loading,
+    error,
+    createTask,
     updateTask,
-    updateTaskGroups,
-  } = useDeveloperTasks({
-    currentDeveloper,
-    mockTasks,
+    refreshTasks
+  } = useDeveloperTasks();
+
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('');
+  const [projectFilter, setProjectFilter] = useState<string>('');
+  const [sortField, setSortField] = useState<string>('dueDate');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+
+  if (!user) {
+    return <div>Please log in to view your tasks.</div>;
+  }
+
+  if (loading) {
+    return <div>Loading tasks...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
+
+  // Filter and sort tasks
+  const filteredTasks = tasks.filter(task => {
+    const matchesSearch = task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         task.description?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = !statusFilter || task.status === statusFilter;
+    const matchesProject = !projectFilter || task.project === projectFilter;
+    return matchesSearch && matchesStatus && matchesProject;
   });
 
-  const {
-    isTracking,
-    activeTask: trackedTask,
-    elapsedTime,
-    handleStartTracking,
-    handleStopTracking
-  } = useTaskTracking(tasks, updateTask, currentDeveloper);
-
-  const stats = useTaskStats(tasks);
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
-    }),
-    useSensor(KeyboardSensor)
-  );
-
-  const [activeId, setActiveId] = React.useState<string | null>(null);
-  const [activeTask, setActiveTask] = React.useState<Task | null>(null);
-  const [showNewTaskModal, setShowNewTaskModal] = React.useState(false);
-  const [initialTaskData, setInitialTaskData] = React.useState<Partial<{
-    title: string;
-    description: string;
-    status: TaskStatus;
-    priority: Priority;
-    dueDate: string;
-    timeEstimate: number;
-  }> | undefined>(undefined);
-
-  const handleDragStart = useCallback((event: DragStartEvent) => {
-    const task = tasks.find((t) => t.id === event.active.id);
-    setActiveId(event.active.id as string);
-    setActiveTask(task || null);
-  }, [tasks]);
-
-  const handleDragOver = useCallback((event: DragOverEvent) => {
-    const { active, over } = event;
-    if (!over) return;
-
-    const activeTaskId = active.id as string;
-    const overId = over.id as TaskStatus;
-
-    if (activeTaskId === overId) return;
-
-    updateTaskGroups(activeTaskId, overId);
-  }, [updateTaskGroups]);
-
-  const handleDragEnd = useCallback(() => {
-    setActiveId(null);
-    setActiveTask(null);
-  }, []);
-
-  const handleDragCancel = useCallback(() => {
-    setActiveId(null);
-    setActiveTask(null);
-  }, []);
-
-  const handleQuickAdd = (groupTitle: string) => {
-    const status = taskGroups.find(group => group.title === groupTitle)?.id || 'todo';
-    setShowNewTaskModal(true);
-    // Pre-fill the status based on which column's "Add Task" button was clicked
-    const newTaskData = {
-      title: '',
-      description: '',
-      status,
-      priority: 'medium' as Priority,
-      dueDate: new Date().toISOString().split('T')[0],
-      timeEstimate: 0
-    };
-    setInitialTaskData(newTaskData);
-  };
-
-  const handleCreateTask = (formData: {
-    title: string;
-    description: string;
-    status: TaskStatus;
-    priority: Priority;
-    dueDate: string;
-    timeEstimate: number;
-  }) => {
-    const newTask: Task = {
-      id: Math.random().toString(36).substr(2, 9),
-      ...formData,
-      assignee: currentDeveloper,
-      project: 'Client Management',
-      dependencies: [],
-      files: [],
-      activities: [
-        {
-          id: Math.random().toString(36).substr(2, 9),
-          type: 'status_change',
-          content: 'Task created',
-          user: {
-            id: currentDeveloper.id,
-            name: currentDeveloper.name,
-            email: currentDeveloper.email,
-          },
-          timestamp: new Date(),
-        },
-      ],
-      timeSpent: 0,
-      dueDate: new Date(formData.dueDate),
-    };
-
-    updateTask(newTask);
-    setShowNewTaskModal(false);
-    setInitialTaskData(undefined);
-  };
+  const sortedTasks = [...filteredTasks].sort((a, b) => {
+    const aValue = a[sortField as keyof Task];
+    const bValue = b[sortField as keyof Task];
+    
+    if (typeof aValue === 'string' && typeof bValue === 'string') {
+      return sortDirection === 'asc' 
+        ? aValue.localeCompare(bValue)
+        : bValue.localeCompare(aValue);
+    }
+    
+    if (aValue instanceof Date && bValue instanceof Date) {
+      return sortDirection === 'asc'
+        ? aValue.getTime() - bValue.getTime()
+        : bValue.getTime() - aValue.getTime();
+    }
+    
+    return 0;
+  });
 
   return (
-    <div className="p-6">
-      <DeveloperStats
-        developer={currentDeveloper}
-        stats={stats}
-      />
-
-      {trackedTask && (
-        <ActiveTaskTracker
-          task={trackedTask}
-          elapsedTime={elapsedTime}
-          onStopTracking={handleStopTracking}
-        />
-      )}
-
-      {/* Task Board */}
-      <div className="space-y-6">
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <TaskBoardHeader
+          onNewTask={() => {}}
           searchTerm={searchTerm}
-          statusFilter={statusFilter}
-          projectFilter={projectFilter}
-          sortField={sortField}
-          sortDirection={sortDirection}
           onSearchChange={setSearchTerm}
+          statusFilter={statusFilter}
           onStatusFilterChange={setStatusFilter}
+          projectFilter={projectFilter}
           onProjectFilterChange={setProjectFilter}
+          sortField={sortField}
           onSortFieldChange={setSortField}
+          sortDirection={sortDirection}
           onSortDirectionChange={setSortDirection}
-          onNewTask={() => setShowNewTaskModal(true)}
         />
+        
+        <div className="mt-8">
+          <TaskStats tasks={tasks} />
+        </div>
 
-        {/* Horizontal Scrolling Board */}
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCorners}
-          onDragStart={handleDragStart}
-          onDragOver={handleDragOver}
-          onDragEnd={handleDragEnd}
-          onDragCancel={handleDragCancel}
-        >
-          <div className="flex gap-6 overflow-x-auto pb-6 min-h-[calc(100vh-400px)]">
-            {taskGroups.map(group => (
-              <TaskGroup
-                key={group.id}
-                id={group.id}
-                title={group.title}
-                tasks={group.tasks}
-                isTracking={Boolean(isTracking)}
-                onStartTracking={handleStartTracking}
-                onStopTracking={handleStopTracking}
-                onQuickAdd={handleQuickAdd}
-              />
-            ))}
-          </div>
-
-          <DragOverlay dropAnimation={{
-            duration: 200,
-            easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)',
-          }}>
-            {activeId && activeTask ? (
-              <TaskGroup
-                id={activeTask.status}
-                title=""
-                tasks={[activeTask]}
-                isTracking={Boolean(isTracking)}
-                onStartTracking={handleStartTracking}
-                onStopTracking={handleStopTracking}
-                onQuickAdd={handleQuickAdd}
-              />
-            ) : null}
-          </DragOverlay>
-        </DndContext>
+        <div className="mt-8">
+          <TaskBoard
+            tasks={sortedTasks}
+            onTaskUpdate={updateTask}
+            onTaskCreate={createTask}
+            currentUser={user}
+            showStats={true}
+            showTimeTracking={true}
+          />
+        </div>
       </div>
-
-      <TaskModal
-        isOpen={showNewTaskModal}
-        onClose={() => {
-          setShowNewTaskModal(false);
-          setInitialTaskData(undefined);
-        }}
-        onSubmit={handleCreateTask}
-        currentDeveloper={currentDeveloper}
-        initialData={initialTaskData}
-      />
     </div>
   );
 };
 
-export default React.memo(DeveloperPage); 
+export default DeveloperPage; 

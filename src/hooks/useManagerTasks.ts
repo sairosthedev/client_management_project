@@ -4,7 +4,7 @@ import type { Task } from '../types/task';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
-export const useDeveloperTasks = () => {
+export const useManagerTasks = () => {
   const { user } = useAuth();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
@@ -14,7 +14,7 @@ export const useDeveloperTasks = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch(`${API_URL}/api/tasks/developer/${user?._id}`, {
+      const response = await fetch(`${API_URL}/api/tasks`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
           'Accept': 'application/json',
@@ -45,7 +45,7 @@ export const useDeveloperTasks = () => {
     } finally {
       setLoading(false);
     }
-  }, [user?._id]);
+  }, []);
 
   const createTask = useCallback(async (taskData: Partial<Task>) => {
     try {
@@ -59,7 +59,7 @@ export const useDeveloperTasks = () => {
         },
         body: JSON.stringify({
           ...taskData,
-          assignedTo: user?._id,
+          projectManager: user?._id,
         }),
       });
 
@@ -161,10 +161,8 @@ export const useDeveloperTasks = () => {
   }, []);
 
   useEffect(() => {
-    if (user?._id) {
-      fetchTasks();
-    }
-  }, [fetchTasks, user?._id]);
+    fetchTasks();
+  }, [fetchTasks]);
 
   return {
     tasks,

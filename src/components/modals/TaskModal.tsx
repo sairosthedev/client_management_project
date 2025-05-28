@@ -41,7 +41,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
             priority: editingTask.priority,
             assignee: editingTask.assignee,
             dueDate: editingTask.dueDate.toISOString().split('T')[0],
-            timeEstimate: editingTask.timeEstimate,
+            estimatedHours: editingTask.estimatedHours,
           } : undefined}
           onSubmit={onSubmit}
           onCancel={onClose}

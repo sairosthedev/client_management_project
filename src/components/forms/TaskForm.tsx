@@ -9,7 +9,7 @@ export interface TaskFormData {
   priority: 'low' | 'medium' | 'high';
   assignee?: TeamMemberType;
   dueDate: string;
-  timeEstimate: number;
+  estimatedHours: number;
 }
 
 interface TaskFormProps {
@@ -34,15 +34,18 @@ const TaskForm: React.FC<TaskFormProps> = ({
     priority: initialData.priority || 'medium',
     assignee: initialData.assignee,
     dueDate: initialData.dueDate || new Date().toISOString().split('T')[0],
-    timeEstimate: initialData.timeEstimate || 0,
+    estimatedHours: initialData.estimatedHours || 0,
   });
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-    if (name === 'timeEstimate') {
-      setFormData(prev => ({ ...prev, [name]: parseInt(value) || 0 }));
+    if (name === 'estimatedHours') {
+      const hours = parseFloat(value);
+      if (!isNaN(hours) && hours >= 0) {
+        setFormData(prev => ({ ...prev, [name]: hours }));
+      }
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
     }
@@ -63,19 +66,24 @@ const TaskForm: React.FC<TaskFormProps> = ({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
-          Task Title
+          Title
         </label>
-        <input
-          type="text"
-          name="title"
-          value={formData.title}
-          onChange={handleChange}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          required
-        />
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <FiAlignLeft className="text-gray-400" />
+          </div>
+          <input
+            type="text"
+            name="title"
+            value={formData.title}
+            onChange={handleChange}
+            className="pl-10 w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            required
+          />
+        </div>
       </div>
 
       <div>
@@ -88,7 +96,6 @@ const TaskForm: React.FC<TaskFormProps> = ({
           onChange={handleChange}
           rows={3}
           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          required
         />
       </div>
 
@@ -114,7 +121,7 @@ const TaskForm: React.FC<TaskFormProps> = ({
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Time Estimate (minutes)
+            Estimated Hours
           </label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -122,11 +129,11 @@ const TaskForm: React.FC<TaskFormProps> = ({
             </div>
             <input
               type="number"
-              name="timeEstimate"
-              value={formData.timeEstimate}
+              name="estimatedHours"
+              value={formData.estimatedHours}
               onChange={handleChange}
               min="0"
-              step="30"
+              step="0.5"
               className="pl-10 w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
             />

@@ -2,6 +2,8 @@ import React from 'react';
 import { FiX } from 'react-icons/fi';
 import type { Task, TaskStatus, Priority } from '../../types/task';
 import type { TeamMemberType } from '../../types/index';
+import { useAuth } from '../../contexts/AuthContext';
+import { useProjects } from '../../hooks/useProjects';
 
 interface TaskFormData {
   title: string;
@@ -9,7 +11,9 @@ interface TaskFormData {
   status: TaskStatus;
   priority: Priority;
   dueDate: string;
-  timeEstimate: number;
+  estimatedHours: number;
+  project: string;
+  client: string;
 }
 
 interface TaskModalProps {
@@ -27,27 +31,61 @@ export const TaskModal: React.FC<TaskModalProps> = ({
   initialData,
   currentDeveloper,
 }) => {
+  const { user } = useAuth();
+  const { projects, loading: projectsLoading } = useProjects();
   const [formData, setFormData] = React.useState<TaskFormData>({
     title: initialData?.title || '',
     description: initialData?.description || '',
-    status: initialData?.status || 'todo',
+    status: initialData?.status || 'pending',
     priority: initialData?.priority || 'medium',
     dueDate: initialData?.dueDate || new Date().toISOString().split('T')[0],
-    timeEstimate: initialData?.timeEstimate || 0,
+    estimatedHours: initialData?.estimatedHours || 0,
+    project: initialData?.project || '',
+    client: user?.id || '',
   });
 
   if (!isOpen) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    
+    if (!user?._id) {
+      alert('You must be logged in to create a task');
+      return;
+    }
+    
+    if (!formData.project) {
+      alert('Please select a project');
+      return;
+    }
+
+    // Create the task data with proper formatting
+    const taskData: TaskFormData = {
+      ...formData,
+      client: user._id,
+      dueDate: new Date(formData.dueDate).toISOString(),
+    };
+
+    onSubmit(taskData);
   };
+
+  const handleEstimatedHoursChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseFloat(e.target.value);
+    if (!isNaN(value) && value >= 0) {
+      setFormData(prev => ({ ...prev, estimatedHours: value }));
+    } else {
+      setFormData(prev => ({ ...prev, estimatedHours: 0 }));
+    }
+  };
+
+  // Filter projects by client if user has a clientId
+  const filteredProjects = projects;
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex items-center justify-center min-h-screen p-4">
         <div className="fixed inset-0 bg-black opacity-30" onClick={onClose} />
-        <div className="relative bg-white rounded-lg shadow-xl max-w-2xl w-full p-6">
+        <div className="relative bg-white rounded-lg p-6 w-full max-w-2xl z-50">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold">Create New Task</h2>
             <button
@@ -94,10 +132,9 @@ export const TaskModal: React.FC<TaskModalProps> = ({
                   onChange={(e) => setFormData({ ...formData, status: e.target.value as TaskStatus })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="todo">To Do</option>
-                  <option value="in_progress">In Progress</option>
-                  <option value="review">Review</option>
-                  <option value="done">Done</option>
+                  <option value="pending">Pending</option>
+                  <option value="in-progress">In Progress</option>
+                  <option value="completed">Completed</option>
                 </select>
               </div>
 
@@ -133,21 +170,47 @@ export const TaskModal: React.FC<TaskModalProps> = ({
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Time Estimate (hours)
+                  Estimated Hours
                 </label>
                 <input
                   type="number"
                   min="0"
                   step="0.5"
-                  value={formData.timeEstimate / 60}
-                  onChange={(e) => setFormData({ ...formData, timeEstimate: Number(e.target.value) * 60 })}
+                  value={formData.estimatedHours}
+                  onChange={handleEstimatedHoursChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 />
               </div>
             </div>
 
-            <div className="flex justify-end gap-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Project
+              </label>
+              <select
+                value={formData.project}
+                onChange={(e) => setFormData({ ...formData, project: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
+                disabled={projectsLoading}
+              >
+                <option value="">Select a project</option>
+                {filteredProjects.map((project) => (
+                  <option key={project._id} value={project._id}>
+                    {project.name}
+                  </option>
+                ))}
+              </select>
+              {projectsLoading && (
+                <p className="mt-1 text-sm text-gray-500">Loading projects...</p>
+              )}
+              {!projectsLoading && filteredProjects.length === 0 && (
+                <p className="mt-1 text-sm text-red-500">No projects available</p>
+              )}
+            </div>
+
+            <div className="flex justify-end gap-4 mt-6">
               <button
                 type="button"
                 onClick={onClose}

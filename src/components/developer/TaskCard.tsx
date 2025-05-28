@@ -27,14 +27,30 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   onStopTracking,
 }) => {
   const { attributes, listeners, setNodeRef, transform } = useDraggable({
-    id: task.id,
+    id: task._id,
   });
 
   const style = transform ? {
     transform: CSS.Translate.toString(transform),
   } : undefined;
 
-  const isCurrentlyTracking = isTracking === task.id;
+  const isCurrentlyTracking = isTracking === task._id;
+
+  // Get assignee name and initial
+  const getAssigneeInfo = () => {
+    if (!task.assignedTo) {
+      return { name: 'Unassigned', initial: 'U' };
+    }
+    if (typeof task.assignedTo === 'string') {
+      return { name: 'Unassigned', initial: 'U' };
+    }
+    return {
+      name: task.assignedTo.name || 'Unassigned',
+      initial: (task.assignedTo.name || 'U').charAt(0).toUpperCase()
+    };
+  };
+
+  const { name: assigneeName, initial: assigneeInitial } = getAssigneeInfo();
 
   return (
     <div
@@ -60,38 +76,37 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         </span>
       </div>
 
-      <div className="mt-4 flex items-center justify-between">
-        <div className="flex items-center gap-4 text-sm text-gray-500">
-          <div className="flex items-center gap-1">
-            <FiCalendar className="w-4 h-4" />
-            <span>{formatDate(task.dueDate)}</span>
-          </div>
+      <div className="mt-4 flex items-center justify-between text-sm text-gray-500">
+        <div className="flex items-center gap-4">
           <div className="flex items-center gap-1">
             <FiClock className="w-4 h-4" />
-            <span>{formatTime(task.timeSpent)}</span>
+            <span>{formatTime(task.actualHours)} / {formatTime(task.estimatedHours)}</span>
           </div>
+          {task.dueDate && (
+            <div className="flex items-center gap-1">
+              <FiCalendar className="w-4 h-4" />
+              <span>{formatDate(task.dueDate)}</span>
+            </div>
+          )}
         </div>
-
         <button
           onClick={isCurrentlyTracking ? onStopTracking : onStartTracking}
-          className={`px-3 py-1 text-sm rounded-lg transition-colors ${
+          className={`px-3 py-1 rounded-full text-xs font-medium ${
             isCurrentlyTracking
               ? 'bg-red-100 text-red-700 hover:bg-red-200'
-              : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+              : 'bg-green-100 text-green-700 hover:bg-green-200'
           }`}
         >
           {isCurrentlyTracking ? 'Stop' : 'Start'}
         </button>
       </div>
 
-      {task.assignee && (
-        <div className="mt-3 flex items-center">
-          <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-xs font-medium">
-            {task.assignee.avatar}
-          </div>
-          <span className="ml-2 text-sm text-gray-600">{task.assignee.name}</span>
+      <div className="mt-3 flex items-center">
+        <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-xs font-medium">
+          {assigneeInitial}
         </div>
-      )}
+        <span className="ml-2 text-sm text-gray-600">{assigneeName}</span>
+      </div>
     </div>
   );
 };

@@ -23,8 +23,8 @@ api.interceptors.request.use((config) => {
         if (userString) {
           const user = JSON.parse(userString);
           // If the user is a client and has an ID, use it for client-id header
-          if (user && user.role === 'client' && user.id) {
-            config.headers['client-id'] = user.id;
+          if (user && user.role === 'client' && user._id) {
+            config.headers['client-id'] = user._id;
           } else {
             // Fall back to dedicated clientId if available
             const clientId = localStorage.getItem('clientId');
@@ -98,9 +98,9 @@ export const registerUser = async (userData: RegistrationData) => {
       
       // Store role-specific IDs
       if (response.data.user.role === 'client') {
-        localStorage.setItem('clientId', response.data.user.id);
+        localStorage.setItem('clientId', response.data.user._id);
       } else if (response.data.user.role === 'developer') {
-        localStorage.setItem('developerId', response.data.user.id);
+        localStorage.setItem('developerId', response.data.user._id);
       }
     }
     
@@ -139,9 +139,9 @@ export const authService = {
       localStorage.setItem('user', JSON.stringify(response.data.user));
       
       if (response.data.user.role === 'client') {
-        localStorage.setItem('clientId', response.data.user.id);
+        localStorage.setItem('clientId', response.data.user._id);
       } else if (response.data.user.role === 'developer') {
-        localStorage.setItem('developerId', response.data.user.id);
+        localStorage.setItem('developerId', response.data.user._id);
       }
     }
     
@@ -161,9 +161,9 @@ export const authService = {
       localStorage.setItem('user', JSON.stringify(response.data));
       
       if (response.data.role === 'client') {
-        localStorage.setItem('clientId', response.data.id);
+        localStorage.setItem('clientId', response.data._id);
       } else if (response.data.role === 'developer') {
-        localStorage.setItem('developerId', response.data.id);
+        localStorage.setItem('developerId', response.data._id);
       }
     }
     

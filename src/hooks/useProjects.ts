@@ -1,25 +1,63 @@
-import { useState, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import axios from 'axios';
 import { projectService, Project, CreateProjectData, UpdateProjectData, MilestoneData } from '../services/projectService';
+
+interface Project {
+  _id: string;
+  name: string;
+  description: string;
+  client: string;
+  status: string;
+}
+
+const api = axios.create({
+  baseURL: 'http://localhost:5000',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// Add request interceptor to add auth token if available
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
 
 export const useProjects = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [currentProject, setCurrentProject] = useState<Project | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch all projects
   const fetchProjects = useCallback(async () => {
     try {
       setLoading(true);
+      const response = await api.get('/api/projects');
+      
+      if (!Array.isArray(response.data)) {
+        console.error('Expected array of projects but got:', response.data);
+        setError('Invalid response format from server');
+        setProjects([]);
+        return;
+      }
+
+      setProjects(response.data);
       setError(null);
-      const data = await projectService.getProjects();
-      setProjects(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch projects');
+      console.error('Error fetching projects:', err);
+      setError('Failed to fetch projects');
+      setProjects([]);
     } finally {
       setLoading(false);
     }
   }, []);
+
+  useEffect(() => {
+    fetchProjects();
+  }, [fetchProjects]);
 
   // Fetch projects by client
   const fetchProjectsByClient = useCallback(async (clientId: string) => {
