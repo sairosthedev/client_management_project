@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { FiCalendar, FiClock, FiUser, FiAlignLeft, FiFlag } from 'react-icons/fi';
+import React, { useState, useEffect } from 'react';
+import { FiCalendar, FiClock, FiUser, FiAlignLeft, FiFlag, FiFolder } from 'react-icons/fi';
 import { TeamMemberType } from '../../types';
+import axios from 'axios';
 
 export interface TaskFormData {
   title: string;
@@ -10,6 +11,8 @@ export interface TaskFormData {
   assignee?: TeamMemberType;
   dueDate: string;
   estimatedHours: number;
+  project: string;
+  client: string;
 }
 
 interface TaskFormProps {
@@ -18,6 +21,12 @@ interface TaskFormProps {
   onCancel: () => void;
   isSubmitting?: boolean;
   team?: TeamMemberType[];
+  clientId: string;
+}
+
+interface Project {
+  _id: string;
+  name: string;
 }
 
 const TaskForm: React.FC<TaskFormProps> = ({
@@ -26,7 +35,10 @@ const TaskForm: React.FC<TaskFormProps> = ({
   onCancel,
   isSubmitting = false,
   team = [],
+  clientId,
 }) => {
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState<TaskFormData>({
     title: initialData.title || '',
     description: initialData.description || '',
@@ -35,7 +47,24 @@ const TaskForm: React.FC<TaskFormProps> = ({
     assignee: initialData.assignee,
     dueDate: initialData.dueDate || new Date().toISOString().split('T')[0],
     estimatedHours: initialData.estimatedHours || 0,
+    project: initialData.project || '',
+    client: clientId,
   });
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        const response = await axios.get(`http://localhost:5000/api/projects?clientId=${clientId}`);
+        setProjects(response.data);
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching projects:', error);
+        setLoading(false);
+      }
+    };
+
+    fetchProjects();
+  }, [clientId]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
@@ -67,6 +96,31 @@ const TaskForm: React.FC<TaskFormProps> = ({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Project
+        </label>
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <FiFolder className="text-gray-400" />
+          </div>
+          <select
+            name="project"
+            value={formData.project}
+            onChange={handleChange}
+            className="pl-10 w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            required
+          >
+            <option value="">Select a project</option>
+            {projects.map((project) => (
+              <option key={project._id} value={project._id}>
+                {project.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
           Title

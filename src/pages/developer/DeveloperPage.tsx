@@ -5,6 +5,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { TaskBoardHeader } from '../../components/developer/TaskBoardHeader';
 import { TaskStats } from '../../components/developer/TaskStats';
 import type { Task } from '../../types/task';
+import type { TeamMemberType } from '../../types';
 
 const DeveloperPage: React.FC = () => {
   const { user } = useAuth();
@@ -34,6 +35,16 @@ const DeveloperPage: React.FC = () => {
   if (error) {
     return <div>Error: {error}</div>;
   }
+
+  const currentUser: TeamMemberType = {
+    id: user._id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    avatar: user.name.charAt(0).toUpperCase(),
+    skills: [],
+    projects: [],
+  };
 
   // Filter and sort tasks
   const filteredTasks = tasks.filter(task => {
@@ -89,9 +100,10 @@ const DeveloperPage: React.FC = () => {
             tasks={sortedTasks}
             onTaskUpdate={updateTask}
             onTaskCreate={createTask}
-            currentUser={user}
+            currentUser={currentUser}
             showStats={true}
             showTimeTracking={true}
+            clientId={user._id}
           />
         </div>
       </div>

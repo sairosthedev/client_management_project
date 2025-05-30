@@ -1,7 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FiX } from 'react-icons/fi';
 import type { Task } from '../../types/task';
 import type { TeamMemberType } from '../../types';
+import axios from 'axios';
+import { useAuth } from '../../contexts/AuthContext';
+
+interface Project {
+  _id: string;
+  name: string;
+}
 
 interface TaskModalProps {
   isOpen: boolean;
@@ -9,6 +16,7 @@ interface TaskModalProps {
   onSubmit: (taskData: Partial<Task>) => Promise<void>;
   currentUser: TeamMemberType;
   initialData?: Partial<Task>;
+  clientId: string;
 }
 
 export const TaskModal: React.FC<TaskModalProps> = ({
@@ -17,7 +25,11 @@ export const TaskModal: React.FC<TaskModalProps> = ({
   onSubmit,
   currentUser,
   initialData,
+  clientId,
 }) => {
+  const { token } = useAuth();
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState<Partial<Task>>({
     title: '',
     description: '',
@@ -25,31 +37,54 @@ export const TaskModal: React.FC<TaskModalProps> = ({
     priority: 'medium',
     dueDate: new Date(),
     estimatedHours: 0,
+    project: '',
+    client: clientId,
     ...initialData,
   });
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        const response = await axios.get(`http://localhost:5000/api/projects?clientId=${clientId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        setProjects(response.data);
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching projects:', error);
+        setLoading(false);
+      }
+    };
+
+    if (isOpen && token) {
+      fetchProjects();
+    }
+  }, [isOpen, clientId, token]);
 
   if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!currentUser?._id) {
-      alert('You must be logged in to create a task');
+    if (!clientId) {
+      alert('Client ID is required');
       return;
     }
 
-    setIsSubmitting(true);
+    if (!formData.project) {
+      alert('Please select a project');
+      return;
+    }
+
     try {
       await onSubmit({
         ...formData,
-        client: currentUser._id,
+        client: clientId,
       });
       onClose();
     } catch (error) {
       console.error('Error creating task:', error);
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -76,6 +111,27 @@ export const TaskModal: React.FC<TaskModalProps> = ({
         <h2 className="text-2xl font-semibold mb-6">Create New Task</h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label htmlFor="project" className="block text-sm font-medium text-gray-700">
+              Project
+            </label>
+            <select
+              id="project"
+              name="project"
+              value={formData.project}
+              onChange={handleChange}
+              required
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+            >
+              <option value="">Select a project</option>
+              {projects.map((project) => (
+                <option key={project._id} value={project._id}>
+                  {project.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
           <div>
             <label htmlFor="title" className="block text-sm font-medium text-gray-700">
               Title
@@ -138,7 +194,6 @@ export const TaskModal: React.FC<TaskModalProps> = ({
                 <option value="low">Low</option>
                 <option value="medium">Medium</option>
                 <option value="high">High</option>
-                <option value="urgent">Urgent</option>
               </select>
             </div>
           </div>
@@ -175,20 +230,19 @@ export const TaskModal: React.FC<TaskModalProps> = ({
             </div>
           </div>
 
-          <div className="flex justify-end gap-4 mt-6">
+          <div className="flex justify-end gap-3 pt-4">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              className="px-4 py-2 text-gray-700 hover:text-gray-900"
             >
               Cancel
             </button>
             <button
               type="submit"
-              disabled={isSubmitting}
-              className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
             >
-              {isSubmitting ? 'Creating...' : 'Create Task'}
+              Create Task
             </button>
           </div>
         </form>

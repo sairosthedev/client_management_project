@@ -14,6 +14,7 @@ interface TaskBoardProps {
   currentUser: TeamMemberType;
   showStats?: boolean;
   showTimeTracking?: boolean;
+  clientId: string;
 }
 
 const COLUMNS: { id: TaskStatus; title: string }[] = [
@@ -30,6 +31,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
   currentUser,
   showStats = false,
   showTimeTracking = false,
+  clientId,
 }) => {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [activeTask, setActiveTask] = useState<Task | null>(null);
@@ -153,6 +155,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
         onSubmit={handleCreateTask}
         currentUser={currentUser}
         initialData={initialTaskData}
+        clientId={clientId}
       />
     </div>
   );

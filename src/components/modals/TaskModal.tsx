@@ -12,6 +12,7 @@ interface TaskModalProps {
   isSubmitting: boolean;
   editingTask: Task | null;
   team: TeamMember[];
+  clientId: string;
 }
 
 export const TaskModal: React.FC<TaskModalProps> = ({
@@ -21,6 +22,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
   isSubmitting,
   editingTask,
   team,
+  clientId,
 }) => {
   return (
     <ModalContainer
@@ -42,11 +44,14 @@ export const TaskModal: React.FC<TaskModalProps> = ({
             assignee: editingTask.assignee,
             dueDate: editingTask.dueDate.toISOString().split('T')[0],
             estimatedHours: editingTask.estimatedHours,
+            project: editingTask.project,
+            client: editingTask.client,
           } : undefined}
           onSubmit={onSubmit}
           onCancel={onClose}
           isSubmitting={isSubmitting}
           team={team}
+          clientId={clientId}
         />
       </div>
     </ModalContainer>

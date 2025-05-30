@@ -16,12 +16,18 @@ const ManagerTaskBoard: React.FC = () => {
     refreshTasks,
   } = useManagerTasks();
 
+  if (!user) {
+    return <div>Please log in to view tasks.</div>;
+  }
+
   const currentUser: TeamMemberType = {
-    _id: user?._id || '',
-    name: user?.name || '',
-    email: user?.email || '',
-    role: user?.role || 'project_manager',
-    avatar: user?.name?.charAt(0).toUpperCase() || 'P',
+    id: user._id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    avatar: user.name.charAt(0).toUpperCase(),
+    skills: [],
+    projects: [],
   };
 
   if (loading) {
@@ -59,6 +65,7 @@ const ManagerTaskBoard: React.FC = () => {
         currentUser={currentUser}
         showStats={true}
         showTimeTracking={true}
+        clientId={user._id}
       />
     </div>
   );

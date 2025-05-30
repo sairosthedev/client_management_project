@@ -1,43 +1,68 @@
-import React, { useState } from 'react';
-import { Task } from '../types/task';
+import React, { useState, useEffect } from 'react';
+import { Task, TaskStatus, Priority } from '../types/task';
 import axios from 'axios';
+
+interface Project {
+  _id: string;
+  name: string;
+}
 
 interface TaskFormProps {
   clientId: string;
-  projectId: string;
   onTaskCreated?: (task: Task) => void;
   initialTask?: Task;
 }
 
 const TaskForm: React.FC<TaskFormProps> = ({ 
   clientId, 
-  projectId, 
   onTaskCreated,
   initialTask 
 }) => {
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     title: initialTask?.title || '',
     description: initialTask?.description || '',
-    status: initialTask?.status || 'pending',
-    priority: initialTask?.priority || 'medium',
+    status: (initialTask?.status || 'pending') as TaskStatus,
+    priority: (initialTask?.priority || 'medium') as Priority,
     dueDate: initialTask?.dueDate ? new Date(initialTask.dueDate).toISOString().split('T')[0] : '',
-    estimatedHours: initialTask?.estimatedHours || '',
+    estimatedHours: initialTask?.estimatedHours || 0,
+    assignedTo: typeof initialTask?.assignedTo === 'string' ? initialTask.assignedTo : initialTask?.assignedTo?._id || '',
+    project: initialTask?.project || '',
+    client: clientId,
   });
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        const response = await axios.get(`http://localhost:5000/api/projects?clientId=${clientId}`);
+        setProjects(response.data);
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching projects:', error);
+        setLoading(false);
+      }
+    };
+
+    fetchProjects();
+  }, [clientId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       const taskData = {
         ...formData,
-        client: clientId,
-        project: projectId,
+        estimatedHours: Number(formData.estimatedHours),
+        dueDate: formData.dueDate ? new Date(formData.dueDate) : null,
       };
 
+      console.log('Submitting task data:', taskData); // Debug log
+
       if (initialTask) {
-        const response = await axios.patch(`/api/tasks/${initialTask._id}`, taskData);
+        const response = await axios.patch(`http://localhost:5000/api/tasks/${initialTask._id}`, taskData);
         onTaskCreated?.(response.data);
       } else {
-        const response = await axios.post('/api/tasks', taskData);
+        const response = await axios.post('http://localhost:5000/api/tasks', taskData);
         onTaskCreated?.(response.data);
       }
 
@@ -46,14 +71,20 @@ const TaskForm: React.FC<TaskFormProps> = ({
         setFormData({
           title: '',
           description: '',
-          status: 'pending',
-          priority: 'medium',
+          status: 'pending' as TaskStatus,
+          priority: 'medium' as Priority,
           dueDate: '',
-          estimatedHours: '',
+          estimatedHours: 0,
+          assignedTo: '',
+          project: '',
+          client: clientId,
         });
       }
     } catch (error) {
       console.error('Error saving task:', error);
+      if (axios.isAxiosError(error)) {
+        console.error('Error response:', error.response?.data);
+      }
     }
   };
 
@@ -65,8 +96,33 @@ const TaskForm: React.FC<TaskFormProps> = ({
     }));
   };
 
+  if (loading) {
+    return <div>Loading projects...</div>;
+  }
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <label htmlFor="project" className="block text-sm font-medium text-gray-700">
+          Project
+        </label>
+        <select
+          id="project"
+          name="project"
+          value={formData.project}
+          onChange={handleChange}
+          required
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+        >
+          <option value="">Select a project</option>
+          {projects.map((project) => (
+            <option key={project._id} value={project._id}>
+              {project.name}
+            </option>
+          ))}
+        </select>
+      </div>
+
       <div>
         <label htmlFor="title" className="block text-sm font-medium text-gray-700">
           Title
@@ -162,6 +218,21 @@ const TaskForm: React.FC<TaskFormProps> = ({
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
           />
         </div>
+      </div>
+
+      <div>
+        <label htmlFor="assignedTo" className="block text-sm font-medium text-gray-700">
+          Assigned To
+        </label>
+        <input
+          type="text"
+          id="assignedTo"
+          name="assignedTo"
+          value={formData.assignedTo}
+          onChange={handleChange}
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+          placeholder="Enter user ID or email"
+        />
       </div>
 
       <button
