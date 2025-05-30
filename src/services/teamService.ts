@@ -1,48 +1,61 @@
 import { TeamMemberType } from '../types';
-import { mockUsers } from '../mocks/users';
-
-// In-memory storage for team members
-let teamMembers = [...mockUsers];
+import { userService } from './userService';
 
 export const teamService = {
   // Create a new team member
   createTeamMember: async (member: Omit<TeamMemberType, 'id'>): Promise<TeamMemberType> => {
-    const newMember = {
-      ...member,
-      id: Math.random().toString(36).substr(2, 9),
-    };
-    teamMembers.push(newMember as TeamMemberType);
-    return newMember as TeamMemberType;
+    try {
+      const response = await userService.createUser({
+        ...member,
+        role: member.role as 'developer' | 'qa_engineer'
+      });
+      return response;
+    } catch (error) {
+      console.error('Error creating team member:', error);
+      throw error;
+    }
   },
 
   // Read all team members
   getAllTeamMembers: async (): Promise<TeamMemberType[]> => {
-    return teamMembers;
+    try {
+      return await userService.getTeamMembers();
+    } catch (error) {
+      console.error('Error fetching team members:', error);
+      throw error;
+    }
   },
 
   // Read a single team member
   getTeamMember: async (id: string): Promise<TeamMemberType | undefined> => {
-    return teamMembers.find(member => member.id === id);
+    try {
+      const response = await userService.getUserById(id);
+      return response;
+    } catch (error) {
+      console.error('Error fetching team member:', error);
+      throw error;
+    }
   },
 
   // Update a team member
   updateTeamMember: async (id: string, updates: Partial<TeamMemberType>): Promise<TeamMemberType | undefined> => {
-    const index = teamMembers.findIndex(member => member.id === id);
-    if (index === -1) return undefined;
-
-    const updatedMember = {
-      ...teamMembers[index],
-      ...updates,
-      id, // Ensure ID doesn't get overwritten
-    };
-    teamMembers[index] = updatedMember;
-    return updatedMember;
+    try {
+      const response = await userService.updateUser(id, updates);
+      return response;
+    } catch (error) {
+      console.error('Error updating team member:', error);
+      throw error;
+    }
   },
 
   // Delete a team member
   deleteTeamMember: async (id: string): Promise<boolean> => {
-    const initialLength = teamMembers.length;
-    teamMembers = teamMembers.filter(member => member.id !== id);
-    return teamMembers.length !== initialLength;
+    try {
+      await userService.deleteUser(id);
+      return true;
+    } catch (error) {
+      console.error('Error deleting team member:', error);
+      throw error;
+    }
   },
 }; 

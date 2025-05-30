@@ -3,7 +3,7 @@ import { FiUsers, FiMail, FiBarChart2, FiClock, FiCheckCircle, FiSearch, FiEdit2
 import { teamService } from '../services/teamService';
 import type { TeamMemberType, UserRole } from '../types';
 import type { Task } from '../types/task';
-import { mockTasks } from '../mocks/tasks';
+import { useManagerTasks } from '../hooks/useManagerTasks';
 
 interface TeamPageComponentProps {
   role: 'developer' | 'project_manager' | 'admin';
@@ -31,6 +31,7 @@ const TeamPageComponent: React.FC<TeamPageComponentProps> = ({
   const [contactMessage, setContactMessage] = useState('');
   const [isReassigningTask, setIsReassigningTask] = useState(false);
   const [taskToReassign, setTaskToReassign] = useState<Task | null>(null);
+  const { tasks, loading: tasksLoading, updateTask, refreshTasks } = useManagerTasks();
 
   useEffect(() => {
     loadTeamMembers();
@@ -88,19 +89,31 @@ const TeamPageComponent: React.FC<TeamPageComponentProps> = ({
   };
 
   const getMemberStats = (memberId: string) => {
-    const memberTasks = mockTasks.filter(task => task.assignee?.id === memberId);
+    const memberTasks = tasks.filter(task => {
+      if (typeof task.assignedTo === 'string') {
+        return task.assignedTo === memberId;
+      }
+      return task.assignedTo?._id === memberId;
+    });
+    
+    const completedTasks = memberTasks.filter(task => task.status === 'completed').length;
+    const totalTasks = memberTasks.length;
+    const totalTimeSpent = memberTasks.reduce((acc, task) => acc + (task.actualHours || 0), 0);
+    const totalEstimatedTime = memberTasks.reduce((acc, task) => acc + (task.estimatedHours || 0), 0);
+    
     return {
-      totalTasks: memberTasks.length,
-      completedTasks: memberTasks.filter(task => task.status === 'done').length,
-      inProgressTasks: memberTasks.filter(task => task.status === 'in_progress').length,
-      totalTimeSpent: memberTasks.reduce((acc, task) => acc + task.timeSpent, 0),
+      totalTasks,
+      completedTasks,
+      inProgressTasks: memberTasks.filter(task => task.status === 'in-progress').length,
+      totalTimeSpent,
+      totalEstimatedTime
     };
   };
 
-  const formatTime = (minutes: number): string => {
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    return `${hours}h ${mins}m`;
+  const formatTime = (hours: number): string => {
+    const wholeHours = Math.floor(hours);
+    const minutes = Math.round((hours - wholeHours) * 60);
+    return `${wholeHours}h ${minutes}m`;
   };
 
   const filteredMembers = teamMembers.filter(member =>
@@ -166,17 +179,22 @@ const TeamPageComponent: React.FC<TeamPageComponentProps> = ({
     </div>
   );
 
-  const handleAssignTask = (taskId: string, newAssigneeId: string) => {
-    const taskIndex = mockTasks.findIndex(t => t.id === taskId);
-    if (taskIndex !== -1) {
-      const newAssignee = teamMembers.find(m => m.id === newAssigneeId);
+  const handleAssignTask = async (taskId: string, newAssigneeId: string) => {
+    const task = tasks.find(t => t._id === taskId);
+    if (task) {
+      const newAssignee = teamMembers.find(m => m._id === newAssigneeId);
       if (newAssignee) {
-        mockTasks[taskIndex] = {
-          ...mockTasks[taskIndex],
-          assignee: newAssignee
-        };
-        setSelectedTask(null);
-        setIsAssigningTask(false);
+        try {
+          await updateTask(taskId, {
+            assignedTo: newAssigneeId,
+            status: 'in-progress'
+          });
+          await refreshTasks();
+          setSelectedTask(null);
+          setIsAssigningTask(false);
+        } catch (error) {
+          console.error('Error assigning task:', error);
+        }
       }
     }
   };
@@ -193,11 +211,11 @@ const TeamPageComponent: React.FC<TeamPageComponentProps> = ({
   };
 
   const calculatePerformanceMetrics = (memberId: string) => {
-    const memberTasks = mockTasks.filter(task => task.assignee?.id === memberId);
+    const memberTasks = tasks.filter(task => task.assignedTo?._id === memberId);
     const totalTasks = memberTasks.length;
-    const completedTasks = memberTasks.filter(task => task.status === 'done').length;
+    const completedTasks = memberTasks.filter(task => task.status === 'completed').length;
     const completionRate = totalTasks ? (completedTasks / totalTasks) * 100 : 0;
-    const totalTimeSpent = memberTasks.reduce((acc, task) => acc + task.timeSpent, 0);
+    const totalTimeSpent = memberTasks.reduce((acc, task) => acc + (task.actualHours || 0), 0);
     const averageTimePerTask = totalTasks ? totalTimeSpent / totalTasks : 0;
 
     return {
@@ -215,18 +233,22 @@ const TeamPageComponent: React.FC<TeamPageComponentProps> = ({
     setIsReassigningTask(true);
   };
 
-  const executeTaskReassignment = (task: Task, newAssigneeId: string) => {
-    const taskIndex = mockTasks.findIndex(t => t.id === task.id);
-    const newAssignee = teamMembers.find(m => m.id === newAssigneeId);
+  const executeTaskReassignment = async (task: Task, newAssigneeId: string) => {
+    const taskIndex = tasks.findIndex(t => t._id === task._id);
+    const newAssignee = teamMembers.find(m => m._id === newAssigneeId);
     
     if (taskIndex !== -1 && newAssignee) {
-      mockTasks[taskIndex] = {
-        ...mockTasks[taskIndex],
-        assignee: newAssignee
-      };
-      
-      setTaskToReassign(null);
-      setIsReassigningTask(false);
+      try {
+        await updateTask(task._id, {
+          assignedTo: newAssigneeId,
+          status: 'in-progress'
+        });
+        await refreshTasks();
+        setTaskToReassign(null);
+        setIsReassigningTask(false);
+      } catch (error) {
+        console.error('Error reassigning task:', error);
+      }
     }
   };
 
@@ -290,31 +312,25 @@ const TeamPageComponent: React.FC<TeamPageComponentProps> = ({
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredMembers.map(member => {
-          const stats = getMemberStats(member.id);
+          const stats = getMemberStats(member._id);
           return (
             <div
-              key={member.id}
+              key={member._id}
               className="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow cursor-pointer"
               onClick={() => setSelectedMember(member)}
             >
-              <div className="flex items-start justify-between">
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-xl font-medium">
-                    {member.avatar}
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-4">
+                  <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+                    <span className="text-blue-600 font-semibold">{member.avatar || member.name[0]}</span>
                   </div>
-                  <div className="flex-1">
-                    <h3 className="font-medium text-lg">{member.name}</h3>
-                    <p className="text-gray-600 text-sm">{member.role}</p>
-                    {canViewSensitiveInfo && (
-                      <div className="flex items-center gap-2 mt-1 text-sm text-gray-500">
-                        <FiMail className="w-4 h-4" />
-                        <span>{member.email}</span>
-                      </div>
-                    )}
+                  <div>
+                    <h3 className="text-lg font-medium">{member.name}</h3>
+                    <p className="text-gray-500">{member.role}</p>
                   </div>
                 </div>
-                {canEditMembers && (
-                  <div className="flex gap-2">
+                <div className="flex space-x-2">
+                  {canEditMembers && (
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -322,69 +338,61 @@ const TeamPageComponent: React.FC<TeamPageComponentProps> = ({
                         setEditForm(member);
                         setIsEditing(true);
                       }}
-                      className="p-2 text-gray-500 hover:text-blue-500"
+                      className="p-2 text-gray-400 hover:text-gray-600"
                     >
-                      <FiEdit2 />
+                      <FiEdit2 className="w-5 h-5" />
                     </button>
+                  )}
+                  {canEditMembers && (
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleDeleteMember(member.id);
+                        handleDeleteMember(member._id);
                       }}
-                      className="p-2 text-gray-500 hover:text-red-500"
+                      className="p-2 text-gray-400 hover:text-red-600"
                     >
-                      <FiTrash2 />
+                      <FiTrash2 className="w-5 h-5" />
                     </button>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
 
-              <div className="mt-4 grid grid-cols-2 gap-4">
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <div className="flex items-center gap-2 text-sm text-gray-600 mb-1">
-                    <FiCheckCircle className="w-4 h-4" />
-                    <span>Tasks</span>
-                  </div>
-                  <p className="text-lg font-medium">
-                    {stats.completedTasks}/{stats.totalTasks}
-                  </p>
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div className="bg-gray-50 rounded p-3">
+                  <p className="text-sm text-gray-500">Tasks</p>
+                  <p className="text-lg font-semibold">{stats.completedTasks}/{stats.totalTasks}</p>
                 </div>
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <div className="flex items-center gap-2 text-sm text-gray-600 mb-1">
-                    <FiClock className="w-4 h-4" />
-                    <span>Time</span>
-                  </div>
-                  <p className="text-lg font-medium">
-                    {formatTime(stats.totalTimeSpent)}
-                  </p>
+                <div className="bg-gray-50 rounded p-3">
+                  <p className="text-sm text-gray-500">Time Spent</p>
+                  <p className="text-lg font-semibold">{formatTime(stats.totalTimeSpent)} / {formatTime(stats.totalEstimatedTime)}</p>
                 </div>
               </div>
 
               <div className="mt-4">
                 <h4 className="text-sm font-medium text-gray-700 mb-2">Skills</h4>
                 <div className="flex flex-wrap gap-2">
-                  {member.skills.map(skill => (
+                  {member.skills?.map(skill => (
                     <span
                       key={skill}
                       className="px-2 py-1 bg-blue-50 text-blue-600 rounded text-sm"
                     >
                       {skill}
                     </span>
-                  ))}
+                  )) || <span className="text-gray-500 text-sm">No skills listed</span>}
                 </div>
               </div>
 
               <div className="mt-4">
                 <h4 className="text-sm font-medium text-gray-700 mb-2">Projects</h4>
                 <div className="flex flex-wrap gap-2">
-                  {member.projects.map(project => (
+                  {member.projects?.map(project => (
                     <span
                       key={project}
                       className="px-2 py-1 bg-purple-50 text-purple-600 rounded text-sm"
                     >
                       {project}
                     </span>
-                  ))}
+                  )) || <span className="text-gray-500 text-sm">No projects listed</span>}
                 </div>
               </div>
             </div>
@@ -452,7 +460,7 @@ const TeamPageComponent: React.FC<TeamPageComponentProps> = ({
                       </button>
                       <button
                         onClick={() => {
-                          handleDeleteMember(selectedMember.id);
+                          handleDeleteMember(selectedMember._id);
                         }}
                         className="px-4 py-2 text-red-500 hover:bg-red-50 rounded-lg flex items-center gap-2"
                       >
@@ -512,7 +520,7 @@ const TeamPageComponent: React.FC<TeamPageComponentProps> = ({
                     </button>
                   </div>
                   {(() => {
-                    const metrics = calculatePerformanceMetrics(selectedMember.id);
+                    const metrics = calculatePerformanceMetrics(selectedMember._id);
                     return (
                       <div className="grid grid-cols-2 gap-4">
                         <div className="bg-white p-3 rounded-lg">
@@ -581,11 +589,11 @@ const TeamPageComponent: React.FC<TeamPageComponentProps> = ({
                     </button>
                   </div>
                   <div className="space-y-4">
-                    {mockTasks
-                      .filter(task => !task.assignee || task.assignee.id !== selectedMember.id)
+                    {tasks
+                      .filter(task => !task.assignedTo || task.assignedTo._id !== selectedMember._id)
                       .map(task => (
                         <div
-                          key={task.id}
+                          key={task._id}
                           className="bg-white p-3 rounded-lg flex items-center justify-between"
                         >
                           <div>
@@ -593,7 +601,7 @@ const TeamPageComponent: React.FC<TeamPageComponentProps> = ({
                             <p className="text-sm text-gray-600">{task.project}</p>
                           </div>
                           <button
-                            onClick={() => handleAssignTask(task.id, selectedMember.id)}
+                            onClick={() => handleAssignTask(task._id, selectedMember._id || '')}
                             className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
                           >
                             Assign
@@ -609,11 +617,11 @@ const TeamPageComponent: React.FC<TeamPageComponentProps> = ({
                 <div>
                   <h3 className="text-lg font-medium mb-4">Current Tasks</h3>
                   <div className="space-y-3">
-                    {mockTasks
-                      .filter(task => task.assignee?.id === selectedMember.id)
+                    {tasks
+                      .filter(task => task.assignedTo?._id === selectedMember._id)
                       .map(task => (
                         <div
-                          key={task.id}
+                          key={task._id}
                           className="bg-gray-50 rounded-lg p-4"
                         >
                           <div className="flex items-start justify-between">
@@ -625,20 +633,22 @@ const TeamPageComponent: React.FC<TeamPageComponentProps> = ({
                             </div>
                             <span
                               className={`px-2 py-1 rounded text-sm ${
-                                task.status === 'done'
+                                task.status === 'completed'
                                   ? 'bg-green-100 text-green-800'
-                                  : task.status === 'in_progress'
+                                  : task.status === 'in-progress'
                                   ? 'bg-blue-100 text-blue-800'
                                   : 'bg-gray-100 text-gray-800'
                               }`}
                             >
-                              {task.status}
+                              {task.status === 'in-progress' ? 'In Progress' : 
+                               task.status === 'completed' ? 'Completed' : 
+                               task.status === 'pending' ? 'Pending' : task.status}
                             </span>
                           </div>
                           <div className="mt-3 flex items-center gap-4 text-sm text-gray-600">
                             <span>{task.project}</span>
                             <span>Due: {new Date(task.dueDate).toLocaleDateString()}</span>
-                            <span>Time: {formatTime(task.timeSpent)}</span>
+                            <span>Time: {formatTime(task.actualHours || 0)} / {formatTime(task.estimatedHours || 0)}</span>
                           </div>
                           {canAssignTasks && (
                             <div className="mt-3">
@@ -660,14 +670,14 @@ const TeamPageComponent: React.FC<TeamPageComponentProps> = ({
                 <div>
                   <h3 className="text-lg font-medium mb-4">Skills</h3>
                   <div className="flex flex-wrap gap-2">
-                    {selectedMember.skills.map(skill => (
+                    {selectedMember.skills?.map(skill => (
                       <span
                         key={skill}
                         className="px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-sm"
                       >
                         {skill}
                       </span>
-                    ))}
+                    )) || <span className="text-gray-500 text-sm">No skills listed</span>}
                   </div>
                 </div>
 
@@ -675,14 +685,14 @@ const TeamPageComponent: React.FC<TeamPageComponentProps> = ({
                 <div>
                   <h3 className="text-lg font-medium mb-4">Projects</h3>
                   <div className="flex flex-wrap gap-2">
-                    {selectedMember.projects.map(project => (
+                    {selectedMember.projects?.map(project => (
                       <span
                         key={project}
                         className="px-3 py-1 bg-purple-50 text-purple-600 rounded-full text-sm"
                       >
                         {project}
                       </span>
-                    ))}
+                    )) || <span className="text-gray-500 text-sm">No projects listed</span>}
                   </div>
                 </div>
               </div>
@@ -713,10 +723,10 @@ const TeamPageComponent: React.FC<TeamPageComponentProps> = ({
             </div>
             <div className="space-y-3">
               {teamMembers
-                .filter(member => member.id !== taskToReassign.assignee?.id)
+                .filter(member => member._id !== taskToReassign.assignedTo?._id)
                 .map(member => (
                   <div
-                    key={member.id}
+                    key={member._id}
                     className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
                   >
                     <div className="flex items-center gap-3">
@@ -729,7 +739,7 @@ const TeamPageComponent: React.FC<TeamPageComponentProps> = ({
                       </div>
                     </div>
                     <button
-                      onClick={() => executeTaskReassignment(taskToReassign, member.id)}
+                      onClick={() => executeTaskReassignment(taskToReassign, member._id)}
                       className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm"
                     >
                       Assign
